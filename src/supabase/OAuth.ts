@@ -8,5 +8,5 @@ export default async function OAuthSignIn() {
     },
   });
 
-  console.log(data);
+  return [data, error];
 }

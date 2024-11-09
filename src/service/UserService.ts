@@ -1,5 +1,5 @@
 import { supabase } from "@/supabase/init";
-import { User, UserResponse } from "@supabase/supabase-js";
+import { UserResponse } from "@supabase/supabase-js";
 
 export default class UserService {
   static basePath = "/user";

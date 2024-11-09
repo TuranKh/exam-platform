@@ -6,6 +6,10 @@ import Dashboard from "./pages";
 import AuthPage from "./pages/auth";
 import UserService from "./service/UserService";
 import ProtectedRouter from "./components/ProtectedRouter";
+import CreateExam from "./pages/create-exam";
+import Layout from "./components/Layout";
+import Modals from "./components/Modals";
+import Statistics from "./pages/statistics";
 
 const router = createBrowserRouter([
   {
@@ -17,6 +21,26 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRouter>
         <Dashboard />
+      </ProtectedRouter>
+    ),
+  },
+  {
+    path: "/create-exam",
+    element: (
+      <ProtectedRouter>
+        <Layout>
+          <CreateExam />
+        </Layout>
+      </ProtectedRouter>
+    ),
+  },
+  {
+    path: "/statistics",
+    element: (
+      <ProtectedRouter>
+        <Layout>
+          <Statistics />
+        </Layout>
       </ProtectedRouter>
     ),
   },
@@ -37,6 +61,7 @@ function App() {
     <>
       <RouterProvider router={router} />
       <Toaster position='top-center' reverseOrder={false} />
+      <Modals />
     </>
   );
 }

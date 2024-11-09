@@ -1,0 +1,48 @@
+.exam-wrapper {
+  display: flex;
+  width: 80%;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  > div {
+    width: 100%;
+  }
+
+  .questions-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .questions {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(2, 1fr);
+
+      > div {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+    }
+  }
+
+  .question-image {
+    width: 95%;
+    height: 10rem;
+    margin: 0 auto;
+    object-fit: cover;
+  }
+
+  .exam-details {
+    margin: 1rem 0;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+}

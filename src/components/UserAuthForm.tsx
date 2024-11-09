@@ -6,14 +6,12 @@ import { cn } from "@/lib/utils";
 import UserService from "@/service/UserService";
 import OAuthSignIn from "@/supabase/OAuth";
 import { Switch } from "@radix-ui/react-switch";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export function UserAuthForm({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
 
@@ -43,7 +41,6 @@ export function UserAuthForm({
               autoCapitalize='none'
               autoComplete='email'
               autoCorrect='off'
-              disabled={isLoading}
             />
           </div>
           <div className='grid gap-1'>
@@ -57,19 +54,13 @@ export function UserAuthForm({
               autoCapitalize='none'
               autoComplete='password'
               autoCorrect='off'
-              disabled={isLoading}
             />
           </div>
           <div className='ml-auto flex items-center space-x-2'>
             <Switch id='new-user' />
             <Label htmlFor='new-user'>Yeni istifadəçi</Label>
           </div>
-          <Button type='submit' disabled={isLoading}>
-            {isLoading && (
-              <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
-            )}
-            Daxil ol
-          </Button>
+          <Button type='submit'>Daxil ol</Button>
         </div>
       </form>
 
@@ -83,17 +74,8 @@ export function UserAuthForm({
           </span>
         </div>
       </div>
-      <Button
-        onClick={oAuthLogin}
-        variant='outline'
-        type='button'
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <Icons.spinner className='mr-2 h-4 w-4 animate-spin' />
-        ) : (
-          <Icons.gitHub className='mr-2 h-4 w-4' />
-        )}{" "}
+      <Button onClick={oAuthLogin} variant='outline' type='button'>
+        <Icons.gitHub className='mr-2 h-4 w-4' />
         Google
       </Button>
     </div>
