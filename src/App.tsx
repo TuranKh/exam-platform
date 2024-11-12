@@ -2,14 +2,15 @@ import { Toaster } from "react-hot-toast";
 import { useQuery } from "react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
-import Dashboard from "./pages";
-import AuthPage from "./pages/auth";
-import UserService from "./service/UserService";
-import ProtectedRouter from "./components/ProtectedRouter";
-import CreateExam from "./pages/create-exam";
 import Layout from "./components/Layout";
 import Modals from "./components/Modals";
-import Statistics from "./pages/statistics";
+import ProtectedRouter from "./components/ProtectedRouter";
+import { sidebarRoutes } from "./config/sidebar";
+import Dashboard from "./pages";
+import AuthPage from "./pages/auth";
+import CreateExam from "./pages/create-exam";
+import NotFound from "./pages/not-found";
+import UserService from "./service/UserService";
 
 const router = createBrowserRouter([
   {
@@ -24,22 +25,26 @@ const router = createBrowserRouter([
       </ProtectedRouter>
     ),
   },
+  ...sidebarRoutes.map((sidebarDetails) => {
+    return {
+      path: sidebarDetails.url,
+      element: (
+        <ProtectedRouter>
+          <Layout>{sidebarDetails.component}</Layout>
+        </ProtectedRouter>
+      ),
+    };
+  }),
   {
-    path: "/create-exam",
+    path: "/not-found",
+    element: <NotFound />,
+  },
+  {
+    path: "/exams/:id",
     element: (
       <ProtectedRouter>
         <Layout>
           <CreateExam />
-        </Layout>
-      </ProtectedRouter>
-    ),
-  },
-  {
-    path: "/statistics",
-    element: (
-      <ProtectedRouter>
-        <Layout>
-          <Statistics />
         </Layout>
       </ProtectedRouter>
     ),
@@ -51,16 +56,10 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  const userDetails = useQuery({
-    queryKey: ["get-user"],
-    queryFn: UserService.getUser,
-  });
-
-  console.log({ userDetails: userDetails.data?.data.user });
   return (
     <>
       <RouterProvider router={router} />
-      <Toaster position='top-center' reverseOrder={false} />
+      <Toaster position='bottom-right' reverseOrder={false} />
       <Modals />
     </>
   );

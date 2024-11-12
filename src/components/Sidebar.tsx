@@ -1,33 +1,17 @@
-import { Book, Home } from "lucide-react";
-
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { sidebarRoutes } from "@/config/sidebar";
 import { Link, useLocation } from "react-router-dom";
-
-const sidebarRoutes = [
-  {
-    title: "Ana səhifə",
-    url: "/home",
-    icon: Home,
-  },
-  {
-    title: "Yeni imtahan",
-    url: "/create-exam",
-    icon: Book,
-  },
-  {
-    title: "Statistika",
-    url: "/statistics",
-    icon: Book,
-  },
-];
+import NavUser from "./NavUser";
+import { DropdownMenuSeparator } from "./ui/dropdown-menu";
 
 export default function AppSidebar() {
   const location = useLocation();
@@ -42,24 +26,31 @@ export default function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link
+                      className='transition-all'
                       to={item.url}
-                      style={{
-                        backgroundColor: `${
-                          item.url === location.pathname &&
-                          "hsl(var(--sidebar-accent))"
-                        }`,
-                      }}
+                      style={
+                        item.url === location.pathname
+                          ? {
+                              color: "white",
+                              backgroundColor: "hsl(var(--primary))",
+                            }
+                          : {}
+                      }
                     >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
+                  <DropdownMenuSeparator />
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser />
+      </SidebarFooter>
     </Sidebar>
   );
 }

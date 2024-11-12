@@ -1,4 +1,5 @@
 export const config = {
+  clientUrl: "http://localhost:5173",
   supabase: {
     url: "https://kfmuntfabdrcfxcrqdyz.supabase.co",
     clientKey:

@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import UserService from "@/service/UserService";
 import OAuthSignIn from "@/supabase/OAuth";
 import { Switch } from "@radix-ui/react-switch";
-import { useState } from "react";
 
 export function UserAuthForm({
   className,
@@ -48,7 +47,7 @@ export function UserAuthForm({
               Şifrə
             </Label>
             <Input
-              id='email'
+              id='password'
               placeholder='Şifrə'
               type='password'
               autoCapitalize='none'

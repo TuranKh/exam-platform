@@ -5,10 +5,13 @@ export enum AvailableDialogs {
 }
 
 type VisualStoreDetails = {
-  activeDialogs: AvailableDialogs[];
+  activeDialogs: Array<{
+    type: AvailableDialogs;
+  }>;
   setActiveDialog: (item: AvailableDialogs) => void;
   addActiveDialog: (item: AvailableDialogs) => void;
   closeDialog: () => void;
+  closeAllDialogs: () => void;
 };
 
 export const useVisualStore = create<VisualStoreDetails>((set) => ({
@@ -35,6 +38,11 @@ export const useVisualStore = create<VisualStoreDetails>((set) => ({
       return {
         activeDialogs,
       };
+    });
+  },
+  closeAllDialogs: () => {
+    set({
+      activeDialogs: [],
     });
   },
 }));

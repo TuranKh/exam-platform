@@ -1,4 +1,3 @@
-// DataTable.tsx
 import React, { useState } from "react";
 import {
   Table,
@@ -9,6 +8,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import CustomPagination from "./CustomPagination";
+import { Loader } from "lucide-react";
 
 interface CustomTableProps<T> {
   columns: Column<T>[];
@@ -18,12 +18,13 @@ interface CustomTableProps<T> {
   onPageChange?: (page: number) => void;
   totalItems?: number;
   initialPage?: number;
+  isLoading?: boolean;
 }
 
 interface Column<T> {
   header: string;
   accessor?: keyof T | ((row: T) => any);
-  render?: (rowData: T) => React.ReactNode;
+  render?: (rowData: T, rowIndex: number) => React.ReactNode;
   className?: string;
   align?: "left" | "right" | "center";
 }
@@ -31,6 +32,7 @@ interface Column<T> {
 export default function CustomTable<T>({
   columns,
   data,
+  isLoading = false,
   itemsPerPageOptions = [5, 10, 20],
   initialPage = 1,
 }: CustomTableProps<T>) {
@@ -68,31 +70,57 @@ export default function CustomTable<T>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedData.map((row, rowIndex) => (
-            <TableRow key={rowIndex}>
-              {columns.map((column, colIndex) => (
-                <TableCell
-                  key={colIndex}
-                  className={column.className}
-                  style={{ textAlign: column.align || "left" }}
-                >
-                  {column.render
-                    ? column.render(row)
-                    : column.accessor
-                    ? (row as any)[column.accessor]
-                    : null}
-                </TableCell>
-              ))}
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={columns.length}>
+                <div className='flex justify-center items-center h-24'>
+                  <Loader className='animate-spin' />
+                </div>
+              </TableCell>
             </TableRow>
-          ))}
+          ) : paginatedData.length > 0 ? (
+            paginatedData.map((row, rowIndex) => (
+              <TableRow
+                key={rowIndex}
+                className={rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"}
+              >
+                {columns.map((column, colIndex) => (
+                  <TableCell
+                    key={colIndex}
+                    className={column.className}
+                    style={{ textAlign: column.align || "left" }}
+                  >
+                    {column.render
+                      ? column.render(row, rowIndex)
+                      : column.accessor
+                      ? (row as any)[column.accessor]
+                      : null}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell
+                colSpan={columns.length}
+                className='text-center py-4 text-gray-500'
+              >
+                Məlumat yoxdur
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
 
-      <CustomPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+      <div className='mt-4'>
+        {paginatedData.length > 0 && !isLoading && (
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        )}
+      </div>
     </div>
   );
 }

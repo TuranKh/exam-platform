@@ -1,5 +1,4 @@
 import { supabase } from "@/supabase/init";
-import { UserResponse } from "@supabase/supabase-js";
 
 export default class UserService {
   static basePath = "/user";
@@ -11,8 +10,23 @@ export default class UserService {
     });
   }
 
-  static getUser(): Promise<UserResponse> {
-    return supabase.auth.getUser();
+  static async getUser() {
+    const userDetails = await supabase.auth.getUser();
+    if (userDetails.data.user?.email) {
+      const localUserDetails = await UserService.getLocalUser(
+        userDetails.data.user?.email,
+      );
+      return localUserDetails.data?.[0];
+    }
+  }
+
+  static getLocalUser(email: string) {
+    return supabase.from("users").select("*").eq("email", email);
+  }
+
+  static async signOut() {
+    const { error } = await supabase.auth.signOut();
+    return error;
   }
 }
 
