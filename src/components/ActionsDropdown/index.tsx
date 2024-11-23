@@ -7,16 +7,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Delete, Edit, EllipsisVertical, Eye } from "lucide-react";
+import { CirclePlay, Delete, Edit, EllipsisVertical, Eye } from "lucide-react";
 
 export default function ActionsDropdown({
   onDelete,
   onEdit,
   onView,
+  onStart,
 }: {
   onDelete?: () => void;
   onEdit?: () => void;
   onView?: () => void;
+  onStart?: () => void;
 }) {
   return (
     <DropdownMenu>
@@ -38,6 +40,12 @@ export default function ActionsDropdown({
               Redaktə et
             </DropdownMenuItem>
           )}
+          {onStart && (
+            <DropdownMenuItem className='cursor-pointer' onClick={onStart}>
+              <CirclePlay />
+              İmtahana başla
+            </DropdownMenuItem>
+          )}
           {onView && (
             <DropdownMenuItem className='cursor-pointer' onClick={onView}>
               <Eye />
@@ -45,7 +53,6 @@ export default function ActionsDropdown({
             </DropdownMenuItem>
           )}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
         {onDelete && (
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={onDelete} className='cursor-pointer'>
@@ -54,7 +61,6 @@ export default function ActionsDropdown({
             </DropdownMenuItem>
           </DropdownMenuGroup>
         )}
-        <DropdownMenuSeparator />
       </DropdownMenuContent>
     </DropdownMenu>
   );

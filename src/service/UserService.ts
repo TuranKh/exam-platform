@@ -1,8 +1,6 @@
 import { supabase } from "@/supabase/init";
 
 export default class UserService {
-  static basePath = "/user";
-
   static signUp({ email, password }: UserSignupDetails) {
     return supabase.auth.signUp({
       email,

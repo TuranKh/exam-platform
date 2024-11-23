@@ -1,3 +1,4 @@
+import "./Exam.scss";
 import {
   BookOpen,
   CircleChevronRight,
@@ -7,8 +8,6 @@ import {
   X,
 } from "lucide-react";
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
-
-import "./CreateExam.scss";
 
 import {
   closestCenter,
@@ -33,8 +32,9 @@ import StorageService from "@/service/StorageService";
 import { AvailableDialogs, useVisualStore } from "@/store/VisualStore";
 import { CSS } from "@dnd-kit/utilities";
 import toast from "react-hot-toast";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
+import DateUtils from "@/lib/date-utils";
 
 interface Question {
   id: string;
@@ -43,8 +43,9 @@ interface Question {
   filePath?: string;
 }
 
-export default function CreateExam() {
+export default function Exam() {
   const { id } = useParams();
+  const queryClient = useQueryClient();
   const isEditMode = !!id;
   const navigate = useNavigate();
   const [examDetails, setExamDetails] = useState<{
@@ -58,7 +59,7 @@ export default function CreateExam() {
   const { data: existingExamDetails, isLoading } = useQuery({
     queryKey: ["get-exam", id],
     queryFn: async () => {
-      return ExamService.getExam(Number(id));
+      return ExamService.getExam(Number(id), true);
     },
     enabled: isEditMode,
   });
@@ -66,16 +67,18 @@ export default function CreateExam() {
   useEffect(() => {
     if (isEditMode && existingExamDetails) {
       setExamDetails({
-        duration: existingExamDetails[0].duration,
-        name: existingExamDetails[0].name,
+        duration: existingExamDetails.duration,
+        name: existingExamDetails.name,
       });
       setQuestions(() => {
-        const existingQuestions = JSON.parse(existingExamDetails[0].questions);
+        console.log({ existingExamDetails });
+        const existingQuestions = JSON.parse(existingExamDetails.questions);
+        const existingAnswers = JSON.parse(existingExamDetails.answers);
         return existingQuestions.map(
           (question: { id: string; answerId: number; filePath: string }) => {
             return {
               id: question.id,
-              correctAnswer: question.answerId,
+              correctAnswer: existingAnswers[question.id],
               filePath: question.filePath,
             };
           },
@@ -109,7 +112,7 @@ export default function CreateExam() {
     return files.map((file) => ({
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       file,
-      correctAnswer: answerOptions[0],
+      correctAnswer: null,
     }));
   };
 
@@ -140,10 +143,10 @@ export default function CreateExam() {
 
   async function editExam() {
     const randomIdentifier = crypto.randomUUID();
-
+    const answers: Record<string, string | null> = {};
+    console.log({ questions });
     const questionDetails = await Promise.all(
       questions.map(async (questionDetails) => {
-        console.log(questionDetails);
         let filePath: string | null | undefined = null;
 
         if (questionDetails.file) {
@@ -153,9 +156,9 @@ export default function CreateExam() {
           );
           filePath = fileDetails?.path;
         } else if (questionDetails.filePath) {
-          console.log("executed");
           filePath = questionDetails.filePath;
         }
+        answers[questionDetails.id] = questionDetails.correctAnswer;
 
         return {
           id: questionDetails.id,
@@ -170,13 +173,18 @@ export default function CreateExam() {
       duration: examDetails.duration,
       questionsCount: questionDetails.length,
       questions: JSON.stringify(questionDetails),
+      answers: JSON.stringify(answers),
     };
+    const requestResult = await ExamService.createExam(finalExamDetails);
 
-    const result = await ExamService.updateExam(Number(id), finalExamDetails);
-
-    if (result) {
+    if (requestResult) {
+      queryClient.invalidateQueries({
+        queryKey: ["get-exam", id],
+      });
       toast.success("İmtahan uğurla redaktə edildi");
       navigate("/exams");
+    } else {
+      toast.error("İmtahan redaktə edərkən xəta baş verdi");
     }
   }
 
@@ -191,10 +199,14 @@ export default function CreateExam() {
 
     const fileUploadResult = await Promise.all(requests);
 
+    const answers: Record<string, string | null> = {};
     const questionDetails = fileUploadResult.map((value, index) => {
+      if (value?.id) {
+        answers[value.id] = questions[index].correctAnswer;
+      }
+
       return {
         id: value?.id,
-        answerId: questions[index].correctAnswer,
         filePath: value?.path,
       };
     });
@@ -204,14 +216,15 @@ export default function CreateExam() {
       duration: examDetails.duration,
       questionsCount: questions.length,
       questions: JSON.stringify(questionDetails),
+      answers: JSON.stringify(answers),
+      createdAt: DateUtils.getServerDate(new Date()),
     };
 
-    const result = await ExamService.createExam(finalExamDetails);
-
-    if (result) {
-      toast.success("Yeni imtahan uğurla yaradıldı");
-      navigate("/exams");
-    }
+    toast.promise(ExamService.createExam(finalExamDetails), {
+      loading: "Yeni imtahan yaranır...",
+      success: () => "Yeni imtahan uğurla yaradıldı",
+      error: () => "Yeni imtahan yaradarkən xəta baş verdi",
+    });
   }
 
   function handleDragEnd(event: DragEndEvent) {
@@ -438,10 +451,11 @@ const SortableItem = React.memo(function SortableItem({
       )}
       <div>
         <select
-          value={question.correctAnswer}
+          value={question.correctAnswer || "null"}
           onChange={(e) => updateCorrectAnswer(question.id, e.target.value)}
           className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white'
         >
+          <option key={"null"}>Cavab seçin</option>
           {answerOptions.map((answer) => {
             return <option key={answer}>{answer}</option>;
           })}

@@ -1,5 +1,4 @@
 import { Toaster } from "react-hot-toast";
-import { useQuery } from "react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/Layout";
@@ -8,9 +7,9 @@ import ProtectedRouter from "./components/ProtectedRouter";
 import { sidebarRoutes } from "./config/sidebar";
 import Dashboard from "./pages";
 import AuthPage from "./pages/auth";
-import CreateExam from "./pages/create-exam";
+import UserExam from "./pages/user-exams/exam";
+import Exam from "./pages/exams/exam";
 import NotFound from "./pages/not-found";
-import UserService from "./service/UserService";
 
 const router = createBrowserRouter([
   {
@@ -44,14 +43,24 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRouter>
         <Layout>
-          <CreateExam />
+          <Exam />
+        </Layout>
+      </ProtectedRouter>
+    ),
+  },
+  {
+    path: "/available-exams/:id",
+    element: (
+      <ProtectedRouter>
+        <Layout>
+          <UserExam />
         </Layout>
       </ProtectedRouter>
     ),
   },
   {
     path: "*",
-    element: <AuthPage />,
+    element: <NotFound />,
   },
 ]);
 
@@ -59,7 +68,18 @@ function App() {
   return (
     <>
       <RouterProvider router={router} />
-      <Toaster position='bottom-right' reverseOrder={false} />
+      <Toaster
+        toastOptions={{
+          success: {
+            duration: 3000,
+          },
+          error: {
+            duration: 3000,
+          },
+        }}
+        position='bottom-right'
+        reverseOrder={false}
+      />
       <Modals />
     </>
   );

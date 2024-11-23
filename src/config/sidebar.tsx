@@ -6,11 +6,12 @@ import {
   Users as UsersIcon,
 } from "lucide-react";
 
-import CreateExam from "@/pages/create-exam";
+import Exam from "@/pages/exams/exam";
 import Exams from "@/pages/exams";
 import Home from "@/pages/home";
 import Permissions from "@/pages/permissions";
 import Users from "@/pages/users";
+import UserExams from "@/pages/user-exams";
 
 export const sidebarRoutes = [
   {
@@ -29,7 +30,7 @@ export const sidebarRoutes = [
     title: "Yeni imtahan",
     url: "/create-exam",
     icon: Plus,
-    component: <CreateExam />,
+    component: <Exam />,
   },
   {
     title: "Mövcud imtahanlarım",
@@ -42,5 +43,11 @@ export const sidebarRoutes = [
     url: "/users",
     icon: UsersIcon,
     component: <Users />,
+  },
+  {
+    title: "İmtahanlar",
+    url: "/available-exams",
+    icon: BookCheck,
+    component: <UserExams />,
   },
 ];

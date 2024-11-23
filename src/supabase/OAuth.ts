@@ -5,7 +5,7 @@ export default async function OAuthSignIn() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${config.clientUrl}/authorize`,
+      redirectTo: `${config.clientUrl}/dashboard`,
     },
   });
 

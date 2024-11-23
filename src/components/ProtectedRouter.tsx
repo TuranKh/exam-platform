@@ -19,7 +19,7 @@ export default function ProtectedRouter({
     return <Loading />;
   }
 
-  const isAuthorized = userDetails.email;
+  const isAuthorized = userDetails?.email;
 
   if (isAuthorized) {
     return children;

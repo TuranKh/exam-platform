@@ -7,7 +7,7 @@ export default function Modals() {
   return (
     <>
       {activeDialogs.map((dialog) => {
-        switch (dialog) {
+        switch (dialog.type) {
           case AvailableDialogs.Confirmation:
             return <ConfirmationDialog open={true} />;
         }

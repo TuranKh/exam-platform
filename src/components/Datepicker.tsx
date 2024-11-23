@@ -1,11 +1,18 @@
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "./ui/calendar";
 import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Button } from "./ui/button";
+import { Calendar } from "./ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
-export default function DatePicker({
+type DatePickerProps = {
+  date: string | null;
+  setDate: (date: string | null) => void;
+  maxDate: Date | null;
+  minDate: Date | null;
+};
+
+const DatePicker: React.FC<DatePickerProps> = function ({
   date,
   setDate,
   maxDate = null,
@@ -42,4 +49,6 @@ export default function DatePicker({
       </PopoverContent>
     </Popover>
   );
-}
+};
+
+export default DatePicker;

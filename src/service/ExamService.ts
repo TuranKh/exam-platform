@@ -1,8 +1,14 @@
+import DateUtils from "@/lib/date-utils";
+import ObjectFormatter from "@/lib/object-formatter";
 import { supabase } from "@/supabase/init";
-
 export default class ExamService {
-  static async getAllExams() {
-    const result: { data: ExamDetails[] | null } = await supabase
+  static async getAllExams(filters?: ExamFilters) {
+    const validFilters = ObjectFormatter.removeNullishValues(filters);
+    if (validFilters) {
+      return this.filterExams(validFilters);
+    }
+
+    const result = await supabase
       .from("exams")
       .select("*")
       .order("createdAt", { ascending: false });
@@ -10,12 +16,48 @@ export default class ExamService {
     return result.data;
   }
 
-  static async getExam(examId: number) {
-    const result: { data: ExamDetails[] | null } = await supabase
+  static async filterExams(filters?: Partial<ExamFilters>) {
+    let result = supabase
       .from("exams")
       .select("*")
+      .order("createdAt", { ascending: false });
+
+    if (filters) {
+      result = ExamService.applyFilters(result, filters);
+    }
+
+    return (await result).data as ExamDetails[] | null;
+  }
+
+  static applyFilters(result: any, filters: Partial<ExamFilters>) {
+    Object.entries(filters).map(([key, value]) => {
+      const isDate = key === "createdAt";
+      if (isDate) {
+        const date = DateUtils.getServerDate(value as Date);
+        result.eq(key, date);
+      } else {
+        result.like(key, value);
+      }
+    });
+
+    return result;
+  }
+
+  static async getExam(examId: number, isTeacher = false) {
+    if (isTeacher) {
+      const result: { data: ExamDetails[] | null } = await supabase
+        .from("exams")
+        .select("*")
+        .eq("id", examId);
+      return result.data?.[0];
+    }
+
+    const result: { data: ExamDetails[] | null } = await supabase
+      .from("exams")
+      .select("name, duration, questionsCount, questions")
       .eq("id", examId);
-    return result.data;
+
+    return result.data?.[0];
   }
 
   static async createExam(examDetails: NewExamDetails) {
@@ -51,46 +93,25 @@ export default class ExamService {
     const { error } = await supabase.from("exams").delete().eq("id", id);
     return error;
   }
-
-  static async filterExams() {
-    let { data: exams, error } = await supabase
-      .from("exams")
-      .select("*")
-
-      // Filters
-      .eq("column", "Equal to")
-      .gt("column", "Greater than")
-      .lt("column", "Less than")
-      .gte("column", "Greater than or equal to")
-      .lte("column", "Less than or equal to")
-      .like("column", "%CaseSensitive%")
-      .ilike("column", "%CaseInsensitive%")
-      .is("column", null)
-      .in("column", ["Array", "Values"])
-      .neq("column", "Not equal to")
-
-      // Arrays
-      .contains("array_column", ["array", "contains"])
-      .containedBy("array_column", ["contained", "by"]);
-  }
 }
-
-export type ExamFilter = {
-  name: string;
-  date: string;
-  isActive: boolean;
-};
 
 export type NewExamDetails = {
   name: string;
   duration: number;
   questionsCount: number;
   questions: string;
+  answers: string;
 };
 
 export type ExamDetails = NewExamDetails & {
   id: number;
   createdAt: string;
   participantsCount: number;
+  isActive: boolean;
+};
+
+export type ExamFilters = {
+  createdAt: Date;
+  name: string;
   isActive: boolean;
 };

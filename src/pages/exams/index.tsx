@@ -14,32 +14,29 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import DateUtils from "@/lib/date-utils";
-import ExamService, { ExamDetails } from "@/service/ExamService";
+import ExamService, { ExamDetails, ExamFilters } from "@/service/ExamService";
 import { RotateCcw } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate } from "react-router-dom";
 
-const filterInitialState = {
-  name: "",
-  date: "",
-  isActive: false,
-};
-
 export default function Exams() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: exams, isLoading } = useQuery({
+  const [filters, setFilters] = useState<ExamFilters>({} as ExamFilters);
+  const {
+    data: exams,
+    isFetching: isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["all-exams"],
-    queryFn: ExamService.getAllExams,
+    queryFn: () => ExamService.getAllExams(filters),
     cacheTime: 0,
   });
 
-  const [filters, setFilters] = useState(filterInitialState);
-
   const handleResetAll = () => {
-    setFilters(filterInitialState);
+    setFilters({} as ExamFilters);
   };
 
   const handleStatusToggle = useCallback(
@@ -98,6 +95,10 @@ export default function Exams() {
     ];
   }, [handleStatusToggle, queryClient, navigate]);
 
+  const onSearch = async function () {
+    refetch();
+  };
+
   return (
     <div className='p-6 space-y-4'>
       <h1 className='text-2xl font-bold'>İmtahanlar</h1>
@@ -114,8 +115,8 @@ export default function Exams() {
         <div className='w-1/4'>
           <DatePicker
             maxDate={new Date()}
-            date={filters.date}
-            setDate={(date) => setFilters({ ...filters, date })}
+            date={filters.createdAt}
+            setDate={(date) => setFilters({ ...filters, createdAt: date })}
           />
         </div>
 
@@ -139,7 +140,7 @@ export default function Exams() {
           </Select>
         </div>
 
-        <Button onClick={() => console.log("Search action")} className='ml-4'>
+        <Button onClick={onSearch} className='ml-4'>
           Axtar
         </Button>
         <Button variant='secondary' onClick={handleResetAll} className='mt-4'>
@@ -147,7 +148,6 @@ export default function Exams() {
           <RotateCcw />
         </Button>
       </div>
-
       <CustomTable isLoading={isLoading} columns={columns} data={exams || []} />
     </div>
   );
