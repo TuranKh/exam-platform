@@ -47,10 +47,8 @@ export default function UsersComponent() {
       status: "Passiv",
       createdAt: "2023-02-15",
     },
-    // Daha çox istifadəçi əlavə edin
   ];
 
-  // State for Management tab
   const [filters, setFilters] = useState({ name: "", email: "" });
   const [usersData, setUsersData] = useState(initialUsersData);
   const [filteredUsersData, setFilteredUsersData] = useState(usersData);
@@ -75,7 +73,7 @@ export default function UsersComponent() {
     setFilteredUsersData(usersData);
   };
 
-  const handleStatusToggle = (id, isActive) => {
+  const handleStatusToggle = (id, isActive: boolean) => {
     const updatedUsers = usersData.map((user) =>
       user.id === id
         ? { ...user, status: isActive ? "Aktiv" : "Passiv" }

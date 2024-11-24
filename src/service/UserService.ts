@@ -1,3 +1,4 @@
+import RequestHelper from "@/lib/request-helper";
 import { supabase } from "@/supabase/init";
 
 export default class UserService {
@@ -18,6 +19,19 @@ export default class UserService {
     }
   }
 
+  static async filterUsers(filters?: Partial<UserFilters>) {
+    let result = supabase
+      .from("exams")
+      .select("*")
+      .order("createdAt", { ascending: false });
+
+    if (filters) {
+      result = RequestHelper.applyFilters(result, filters);
+    }
+
+    return (await result).data as UserFilters[] | null;
+  }
+
   static getLocalUser(email: string) {
     return supabase.from("users").select("*").eq("email", email);
   }
@@ -26,6 +40,11 @@ export default class UserService {
     const { error } = await supabase.auth.signOut();
     return error;
   }
+}
+
+export type UserFilters = {
+  name: string,
+  email: string
 }
 
 type UserSignupDetails = {

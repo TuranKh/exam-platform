@@ -1,6 +1,7 @@
 import ActionsDropdown from "@/components/ActionsDropdown";
 import CustomTable from "@/components/CustomtTable";
 import DatePicker from "@/components/Datepicker";
+import Search from "@/components/Search";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,10 +35,6 @@ export default function Exams() {
     queryFn: () => ExamService.getAllExams(filters),
     cacheTime: 0,
   });
-
-  const handleResetAll = () => {
-    setFilters({} as ExamFilters);
-  };
 
   const handleStatusToggle = useCallback(
     async (id: number, isActive: boolean) => {
@@ -103,51 +100,13 @@ export default function Exams() {
     <div className='p-6 space-y-4'>
       <h1 className='text-2xl font-bold'>İmtahanlar</h1>
 
-      <div className='flex space-x-4 items-end'>
-        <div className='w-1/4'>
-          <Input
-            placeholder='İmtahan Adı'
-            value={filters.name}
-            onChange={(e) => setFilters({ ...filters, name: e.target.value })}
-          />
-        </div>
-
-        <div className='w-1/4'>
-          <DatePicker
-            maxDate={new Date()}
-            date={filters.createdAt}
-            setDate={(date) => setFilters({ ...filters, createdAt: date })}
-          />
-        </div>
-
-        <div className='w-1/4'>
-          <Select
-            onValueChange={(value) =>
-              setFilters({ ...filters, isActive: value })
-            }
-          >
-            <SelectTrigger className='w-full'>
-              <SelectValue placeholder='Status' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Status</SelectLabel>
-                <SelectItem value='null'>Hamısı</SelectItem>
-                <SelectItem value='true'>Aktiv</SelectItem>
-                <SelectItem value='false'>Passiv</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Button onClick={onSearch} className='ml-4'>
-          Axtar
-        </Button>
-        <Button variant='secondary' onClick={handleResetAll} className='mt-4'>
-          Axtarışı sıfırla
-          <RotateCcw />
-        </Button>
-      </div>
+      <Search<ExamFilters> filters={filters} setFilters={setFilters}>
+        <>
+          <Button onClick={onSearch} className='ml-4'>
+            Axtar
+          </Button>
+        </>
+      </Search>
       <CustomTable isLoading={isLoading} columns={columns} data={exams || []} />
     </div>
   );

@@ -1,5 +1,5 @@
-import DateUtils from "@/lib/date-utils";
 import ObjectFormatter from "@/lib/object-formatter";
+import RequestHelper from "@/lib/request-helper";
 import { supabase } from "@/supabase/init";
 export default class ExamService {
   static async getAllExams(filters?: ExamFilters) {
@@ -23,24 +23,10 @@ export default class ExamService {
       .order("createdAt", { ascending: false });
 
     if (filters) {
-      result = ExamService.applyFilters(result, filters);
+      result = RequestHelper.applyFilters(result, filters);
     }
 
     return (await result).data as ExamDetails[] | null;
-  }
-
-  static applyFilters(result: any, filters: Partial<ExamFilters>) {
-    Object.entries(filters).map(([key, value]) => {
-      const isDate = key === "createdAt";
-      if (isDate) {
-        const date = DateUtils.getServerDate(value as Date);
-        result.eq(key, date);
-      } else {
-        result.like(key, value);
-      }
-    });
-
-    return result;
   }
 
   static async getExam(examId: number, isTeacher = false) {
