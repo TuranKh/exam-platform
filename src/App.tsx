@@ -60,7 +60,7 @@ const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <NotFound />,
+    element: <AuthPage />,
   },
 ]);
 
