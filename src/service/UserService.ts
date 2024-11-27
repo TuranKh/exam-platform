@@ -40,12 +40,16 @@ export default class UserService {
     const { error } = await supabase.auth.signOut();
     return error;
   }
+
+  static getAll() {
+    return supabase.from("users").select("*");
+  }
 }
 
 export type UserFilters = {
-  name: string,
-  email: string
-}
+  name: string;
+  email: string;
+};
 
 type UserSignupDetails = {
   email: string;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 import {
   Table,
   TableHeader,
@@ -19,14 +19,6 @@ interface CustomTableProps<T> {
   totalItems?: number;
   initialPage?: number;
   isLoading?: boolean;
-}
-
-interface Column<T> {
-  header: string;
-  accessor?: keyof T | ((row: T) => any);
-  render?: (rowData: T, rowIndex: number) => React.ReactNode;
-  className?: string;
-  align?: "left" | "right" | "center";
 }
 
 export default function CustomTable<T>({
@@ -124,3 +116,18 @@ export default function CustomTable<T>({
     </div>
   );
 }
+
+export type Column<T> =
+  | {
+      header: string;
+      align: string;
+      className: string;
+    } & (
+      | {
+          accessor: keyof T;
+        }
+      | {
+          render: (data: T) => ReactNode;
+          accessor: string;
+        }
+    );

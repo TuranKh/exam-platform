@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from "react";
+import CustomTable, { Column } from "@/components/CustomtTable";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -8,22 +11,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import CustomTable from "@/components/CustomtTable";
-import { Eye, RefreshCcw, RotateCcw, Search } from "lucide-react";
-import usePersistData from "@/hooks/usePersistData";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import UserExamsService, { UserExamDetails } from "@/service/UserExamsService";
+import UserService from "@/service/UserService";
+import { Eye, RefreshCcw, RotateCcw, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 
 export default function Permissions() {
-  const data2 = usePersistData();
-  console.log({ data2 });
+  const { data } = useQuery({
+    queryFn: UserExamsService.getAll,
+    queryKey: ["all-user-exams"],
+  });
+
   const [filters, setFilters] = useState({
     examName: "",
     group: "",
@@ -70,17 +75,16 @@ export default function Permissions() {
               <SelectGroup>
                 <SelectLabel>İmtahan adları</SelectLabel>
                 <SelectItem value='null'>Hamısı</SelectItem>{" "}
-                {[...new Set(data.map((item) => item.examName))].map((name) => (
+                {/* {[...new Set(data.map((item) => item.examName))].map((name) => (
                   <SelectItem key={name} value={name}>
                     {name}
                   </SelectItem>
-                ))}
+                ))} */}
               </SelectGroup>
             </SelectContent>
           </Select>
         </div>
 
-        {/* Group Filter */}
         <div className='w-1/4'>
           <Select
             onValueChange={(value) => setFilters({ ...filters, group: value })}
@@ -92,12 +96,11 @@ export default function Permissions() {
               <SelectGroup>
                 <SelectLabel>Qruplar</SelectLabel>
                 <SelectItem value='null'>Hamısı</SelectItem>{" "}
-                {/* Reset option */}
-                {[...new Set(data.map((item) => item.group))].map((group) => (
+                {/* {[...new Set(data.map((item) => item.group))].map((group) => (
                   <SelectItem key={group} value={group}>
                     {group}
                   </SelectItem>
-                ))}
+                ))} */}
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -166,48 +169,12 @@ export default function Permissions() {
           <RotateCcw />
         </Button>
       </div>
-
       <CustomTable columns={columns} data={data} />
     </div>
   );
 }
 
-// Define the data structure for each exam entry
-interface ExamEntry {
-  id: number;
-  examName: string;
-  participantName: string;
-  group: string;
-  status: string;
-  date: string;
-  result: number;
-  attemptsCount: number;
-}
-
-const data: ExamEntry[] = [
-  {
-    id: 1,
-    examName: "Matematika",
-    participantName: "Elmar Həsənov",
-    group: "Qrup A",
-    status: "Tamamlandı",
-    date: "2023-11-01",
-    result: 85,
-    attemptsCount: 1,
-  },
-  {
-    id: 2,
-    examName: "Fizika",
-    participantName: "Aygün Məmmədova",
-    group: "Qrup B",
-    status: "Davam edir",
-    date: "2 gün qalıb",
-    result: 0,
-    attemptsCount: 0,
-  },
-];
-
-const columns: Column<ExamEntry>[] = [
+const columns: Column<UserExamDetails>[] = [
   {
     header: "№",
     accessor: "id",
@@ -219,46 +186,47 @@ const columns: Column<ExamEntry>[] = [
     accessor: "examName",
     align: "left",
     className: "exam-name",
+    render: (data: UserExamDetails) => data.exams.name,
   },
   {
     header: "İştirakçının adı",
     accessor: "participantName",
     align: "left",
     className: "participant-name",
+    render: (data: UserExamDetails) =>
+      `${data.users.name} ${data.users.surname}`,
   },
   {
     header: "Status",
     accessor: "status",
     align: "left",
     className: "status",
-    render: (data: ExamEntry) => (
-      <span>
-        {data.status} {data.date}
-      </span>
-    ),
+    render: (data: UserExamDetails) =>
+      data.isFinished ? "Tamamlandı" : "Gözlənilir",
   },
   {
     header: "Nəticə",
     accessor: "result",
     align: "center",
     className: "result",
-    render: (data: ExamEntry) =>
-      data.status === "Tamamlandı" ? `${data.result}%` : "-",
+    render: (data: UserExamDetails) =>
+      data.isFinished && data.score !== null ? `${data.score}%` : "-",
   },
   {
     header: "Cəhd sayı",
-    accessor: "attemptsCount",
+    accessor: "attemptCount",
     align: "center",
     className: "attempts-count",
+    render: (data: UserExamDetails) => data.attemptCount,
   },
   {
     header: "Əməliyyatlar",
     accessor: "actions",
     align: "center",
     className: "actions",
-    render: (data: ExamEntry) => (
+    render: (data: UserExamDetails) => (
       <div className='flex space-x-2 justify-center'>
-        {data.status === "Tamamlandı" ? (
+        {data.isFinished ? (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
