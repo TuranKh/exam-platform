@@ -48,6 +48,12 @@ export default class UserService {
       .eq("isAdmin", false);
     return data;
   }
+
+  static async getAllUsersDetails() {
+    const { data } = await supabase.from("users-details").select("*");
+
+    return data;
+  }
 }
 
 export type UserFilters = {
@@ -65,12 +71,13 @@ export type UserDetails = {
   createdAt: string;
   email: string;
   password: string;
-  groupId: number | number;
+  groupId: number | null;
   isPending: false;
   isAdmin: false;
-  averageScore: number | number;
-  averageDuration: number | number;
+  averageScore: number | null;
+  averageDuration: number | null;
   name: string;
   surname: string;
   patronymic: string;
+  groupName: string;
 };
