@@ -1,31 +1,26 @@
 import ActionsDropdown from "@/components/ActionsDropdown";
 import CustomTable from "@/components/CustomtTable";
-import DatePicker from "@/components/Datepicker";
-import Search from "@/components/Search";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  AvailableValues,
+  FormFieldType,
+  InputDetails,
+} from "@/components/FormBuilder";
+import Search from "@/components/Search";
 import { Switch } from "@/components/ui/switch";
+import usePagination from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
 import ExamService, { ExamDetails, ExamFilters } from "@/service/ExamService";
-import { RotateCcw } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate } from "react-router-dom";
 
+let filters = {};
+
 export default function Exams() {
+  const paginationDetails = usePagination();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [filters, setFilters] = useState<ExamFilters>({} as ExamFilters);
   const {
     data: exams,
     isFetching: isLoading,
@@ -35,6 +30,12 @@ export default function Exams() {
     queryFn: () => ExamService.getAllExams(filters),
     cacheTime: 0,
   });
+
+  useEffect(() => {
+    return () => {
+      filters = {};
+    };
+  }, []);
 
   const handleStatusToggle = useCallback(
     async (id: number, isActive: boolean) => {
@@ -92,7 +93,15 @@ export default function Exams() {
     ];
   }, [handleStatusToggle, queryClient, navigate]);
 
-  const onSearch = async function () {
+  const onSearch = function (
+    params: Record<keyof ExamFilters, AvailableValues>,
+  ) {
+    filters = params;
+    refetch();
+  };
+
+  const onReset = function () {
+    filters = {};
     refetch();
   };
 
@@ -100,25 +109,62 @@ export default function Exams() {
     <div className='p-6 space-y-4'>
       <h1 className='text-2xl font-bold'>İmtahanlar</h1>
 
-      <Search<ExamFilters> filters={filters} setFilters={setFilters}>
-        <>
-          <Button onClick={onSearch} className='ml-4'>
-            Axtar
-          </Button>
-        </>
-      </Search>
-      <CustomTable isLoading={isLoading} columns={columns} data={exams || []} />
+      <Search<ExamFilters>
+        // inputs={inputs}
+        onSearch={onSearch}
+        onReset={onReset}
+        formDetails={{
+          inputs,
+          options: {
+            isActive: [
+              {
+                label: "Aktiv",
+                value: "true",
+              },
+              {
+                label: "Deaktiv",
+                value: "false",
+              },
+            ],
+          },
+        }}
+      />
+      <CustomTable
+        paginationDetails={paginationDetails}
+        isLoading={isLoading}
+        columns={columns}
+        data={exams || []}
+      />
     </div>
   );
 }
 
+const inputs: InputDetails[] = [
+  {
+    key: "name",
+    label: "İmtahan adı",
+    type: FormFieldType.Text,
+  },
+  {
+    key: "createdAt",
+    label: "Tarix seçin",
+    type: FormFieldType.DatePicker,
+  },
+  {
+    key: "isActive",
+    label: "Aktivlik",
+    type: FormFieldType.Select,
+  },
+];
+
 const staticColumns = [
   {
-    header: "No",
-    accessor: "rowNumber",
+    header: "№",
+    accessor: "id",
     align: "center",
-    render: (_data: ExamDetails, index: number) => {
-      return index + 1;
+    className: "row-number",
+    render: (_row, _rowIndex, relativeRowNumber) => {
+      return relativeRowNumber;
     },
   },
   {
@@ -131,7 +177,7 @@ const staticColumns = [
     accessor: "createdAt",
     align: "center",
     render: (data: ExamDetails) =>
-      new Date(data.createdAt).toLocaleDateString(),
+      DateUtils.getUserFriendlyDate(new Date(data.createdAt)),
   },
   {
     header: "Müddət",

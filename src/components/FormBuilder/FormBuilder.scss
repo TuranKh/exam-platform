@@ -1,0 +1,9 @@
+.form-builder {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  .form-field {
+    width: 250px;
+  }
+}

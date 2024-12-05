@@ -27,4 +27,16 @@ export default class DateUtils {
 
     return `${years}-${months}-${days}`;
   }
+
+  static getUserFriendlyDate(date: Date) {
+    if (!date) {
+      return null;
+    }
+
+    const days = String(date.getDate()).padStart(2, "0");
+    const months = String(date.getMonth() + 1).padStart(2, "0");
+    const years = String(date.getFullYear()).padStart(4, "0");
+
+    return `${days}.${months}.${years}`;
+  }
 }

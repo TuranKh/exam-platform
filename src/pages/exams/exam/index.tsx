@@ -106,6 +106,7 @@ export default function Exam() {
     const files = Array.from(e.target.files || []);
     const newPendingQuestions = getNewFileDetails(files);
     setQuestions((prev) => [...prev, ...newPendingQuestions]);
+    e.target.value = null as any;
   }
 
   const getNewFileDetails = function (files: File[]) {
@@ -222,8 +223,11 @@ export default function Exam() {
 
     toast.promise(ExamService.createExam(finalExamDetails), {
       loading: "Yeni imtahan yaranır...",
-      success: () => "Yeni imtahan uğurla yaradıldı",
-      error: () => "Yeni imtahan yaradarkən xəta baş verdi",
+      success: () => {
+        navigate("/exams");
+        return "Yeni imtahan uğurla yaradıldı";
+      },
+      error: "Yeni imtahan yaradarkən xəta baş verdi",
     });
   }
 

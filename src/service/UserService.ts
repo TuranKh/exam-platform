@@ -41,8 +41,12 @@ export default class UserService {
     return error;
   }
 
-  static getAll() {
-    return supabase.from("users").select("*");
+  static async getAllNonAdmins(): Promise<UserDetails[] | null> {
+    const { data } = await supabase
+      .from("users")
+      .select("*")
+      .eq("isAdmin", false);
+    return data;
   }
 }
 
@@ -54,4 +58,19 @@ export type UserFilters = {
 type UserSignupDetails = {
   email: string;
   password: string;
+};
+
+export type UserDetails = {
+  id: number;
+  createdAt: string;
+  email: string;
+  password: string;
+  groupId: number | number;
+  isPending: false;
+  isAdmin: false;
+  averageScore: number | number;
+  averageDuration: number | number;
+  name: string;
+  surname: string;
+  patronymic: string;
 };

@@ -2,10 +2,10 @@ import ObjectFormatter from "@/lib/object-formatter";
 import RequestHelper from "@/lib/request-helper";
 import { supabase } from "@/supabase/init";
 export default class ExamService {
-  static async getAllExams(filters?: ExamFilters) {
+  static async getAllExams(filters: Partial<ExamFilters>) {
     const validFilters = ObjectFormatter.removeNullishValues(filters);
     if (validFilters) {
-      return this.filterExams(validFilters);
+      return ExamService.filterExams(validFilters);
     }
 
     const result = await supabase
@@ -47,11 +47,13 @@ export default class ExamService {
   }
 
   static async createExam(examDetails: NewExamDetails) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("exams")
       .insert([examDetails])
       .select();
-
+    if (error) {
+      throw Error(error.message);
+    }
     return data;
   }
 
@@ -63,6 +65,10 @@ export default class ExamService {
       .select("*");
 
     return data;
+  }
+
+  static getUserSpecificExams() {
+    return supabase.from("user-specific-exams").select("*");
   }
 
   static async updateExamStatus(id: number, isActive: boolean) {

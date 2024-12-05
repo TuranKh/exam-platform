@@ -1,23 +1,9 @@
 import ActionsDropdown from "@/components/ActionsDropdown";
 import CustomTable from "@/components/CustomtTable";
-import DatePicker from "@/components/Datepicker";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import usePagination from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
 import ExamService, { ExamDetails } from "@/service/ExamService";
-import { RotateCcw } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
-import toast from "react-hot-toast";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate } from "react-router-dom";
 
@@ -31,10 +17,10 @@ export default function UserExams() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: exams, isLoading } = useQuery({
-    queryKey: ["all-exams"],
-    queryFn: ExamService.getAllExams,
-    cacheTime: 0,
+    queryKey: ["all-user-exams"],
+    queryFn: ExamService.getUserSpecificExams,
   });
+  const paginationDetails = usePagination();
 
   const [filters, setFilters] = useState(filterInitialState);
 
@@ -64,18 +50,24 @@ export default function UserExams() {
     <div className='p-6 space-y-4'>
       <h1 className='text-2xl font-bold'>İmtahanlar</h1>
 
-      <CustomTable isLoading={isLoading} columns={columns} data={exams || []} />
+      <CustomTable
+        paginationDetails={paginationDetails}
+        isLoading={isLoading}
+        columns={columns}
+        data={exams || []}
+      />
     </div>
   );
 }
 
 const staticColumns = [
   {
-    header: "No",
-    accessor: "rowNumber",
+    header: "№",
+    accessor: "id",
     align: "center",
-    render: (_data: ExamDetails, index: number) => {
-      return index + 1;
+    className: "row-number",
+    render: (_row, _rowIndex, relativeRowNumber) => {
+      return relativeRowNumber;
     },
   },
   {

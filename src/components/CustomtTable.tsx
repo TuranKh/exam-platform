@@ -1,23 +1,21 @@
-import React, { ReactNode, useState } from "react";
 import {
   Table,
-  TableHeader,
-  TableRow,
-  TableHead,
   TableBody,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import CustomPagination from "./CustomPagination";
+import { PaginationDetails } from "@/hooks/usePagination";
 import { Loader } from "lucide-react";
+import { ReactNode, useMemo } from "react";
+import CustomPagination from "./CustomPagination";
 
 interface CustomTableProps<T> {
   columns: Column<T>[];
   data: T[];
   itemsPerPageOptions?: number[];
-  currentPage?: number;
-  onPageChange?: (page: number) => void;
-  totalItems?: number;
-  initialPage?: number;
+  paginationDetails: PaginationDetails;
   isLoading?: boolean;
 }
 
@@ -25,25 +23,11 @@ export default function CustomTable<T>({
   columns,
   data,
   isLoading = false,
-  itemsPerPageOptions = [5, 10, 20],
-  initialPage = 1,
+  paginationDetails,
 }: CustomTableProps<T>) {
-  const [currentPage, setCurrentPage] = useState<number>(initialPage);
-  const [itemsPerPage, setItemsPerPage] = useState<number>(
-    itemsPerPageOptions[0],
-  );
-
-  const totalItems = data.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  const paginatedData = data.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  const relativeRowNumber = useMemo(() => {
+    return paginationDetails.page * paginationDetails.perPage + 1;
+  }, [paginationDetails.page, paginationDetails.perPage]);
 
   return (
     <div>
@@ -70,8 +54,8 @@ export default function CustomTable<T>({
                 </div>
               </TableCell>
             </TableRow>
-          ) : paginatedData.length > 0 ? (
-            paginatedData.map((row, rowIndex) => (
+          ) : data.length > 0 ? (
+            data.map((row, rowIndex) => (
               <TableRow
                 key={rowIndex}
                 className={rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"}
@@ -83,7 +67,11 @@ export default function CustomTable<T>({
                     style={{ textAlign: column.align || "left" }}
                   >
                     {column.render
-                      ? column.render(row, rowIndex)
+                      ? column.render(
+                          row,
+                          rowIndex,
+                          relativeRowNumber + rowIndex,
+                        )
                       : column.accessor
                       ? (row as any)[column.accessor]
                       : null}
@@ -105,12 +93,8 @@ export default function CustomTable<T>({
       </Table>
 
       <div className='mt-4'>
-        {paginatedData.length > 0 && !isLoading && (
-          <CustomPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+        {!isLoading && paginationDetails && (
+          <CustomPagination paginationDetails={paginationDetails} />
         )}
       </div>
     </div>
@@ -121,13 +105,18 @@ export type Column<T> =
   | {
       header: string;
       align: string;
-      className: string;
+      className?: string;
     } & (
       | {
-          accessor: keyof T;
+          render: (
+            data: T,
+            rowIndex: number,
+            relativeRowNumber: number,
+          ) => ReactNode;
+          accessor?: string;
         }
       | {
-          render: (data: T) => ReactNode;
-          accessor: string;
+          accessor: keyof T;
+          render?: never;
         }
     );

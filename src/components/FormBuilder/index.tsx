@@ -1,5 +1,6 @@
-import { Fragment, memo, useCallback } from "react";
-import { Input } from "./ui/input";
+import { Fragment, useCallback } from "react";
+import DatePicker from "../Datepicker";
+import { Input } from "../ui/input";
 import {
   Select,
   SelectContent,
@@ -7,9 +8,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { Switch } from "./ui/switch";
-import DatePicker from "./Datepicker";
+} from "../ui/select";
+import { Switch } from "../ui/switch";
+import "./FormBuilder.scss";
 
 export enum FormFieldType {
   Text = "text",
@@ -28,25 +29,26 @@ export enum FormFieldType {
 type OptionsValue = string | number | null;
 type DateInputValue = Date | null;
 
-type InputDetails = {
+export type InputDetails = {
   label: string;
   key: string;
   type: FormFieldType;
 };
 
-type FormChangeProps = {
-  value: OptionsValue | DateInputValue;
-  key: string;
+export type AvailableValues = OptionsValue | DateInputValue | boolean;
+
+export type FormChangeProps = {
+  [key: string]: AvailableValues;
 };
 
-type FormDetails = {
+export type FormDetails = {
   inputs: Array<InputDetails>;
-  options: Record<string, Array<{ label: string; value: OptionsValue }>>;
+  options?: Record<string, Array<{ label: string; value: OptionsValue }>>;
   onChange: (details: FormChangeProps) => void;
-  values: Record<string, OptionsValue | DateInputValue>;
+  values: Record<string, AvailableValues>;
 };
 
-const FormVisualizer = memo(({ form }: { form: FormDetails }) => {
+export default function FormBuilder({ form }: { form: FormDetails }) {
   const renderField = useCallback(
     (inputDetails: InputDetails) => {
       const formFieldDetails = {
@@ -67,46 +69,54 @@ const FormVisualizer = memo(({ form }: { form: FormDetails }) => {
                   : "text"
               }
               placeholder={formFieldDetails.label}
-              value={formFieldDetails.value}
+              value={formFieldDetails.value as string}
               onChange={(e) =>
                 form.onChange({
                   [formFieldDetails.key]: e.target.value,
-                } as Record<string, unknown>)
+                })
               }
             />
           );
         case FormFieldType.Select:
           return (
             <Select
-              value={formFieldDetails.value}
-              onChange={(value) =>
-                form.onChange({ [formFieldDetails.key]: value } as Record<
-                  string,
-                  unknown
-                >)
-              }
+              value={formFieldDetails.value as string}
+              onValueChange={(value) => {
+                form.onChange({ [formFieldDetails.key]: value });
+              }}
             >
               <SelectTrigger className='w-full'>
                 <SelectValue placeholder='Status' />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {formFieldDetails.options?.map((option) => (
-                    <SelectItem value={option.value}></SelectItem>
+                  {form.options?.[formFieldDetails.key]?.map((option) => (
+                    <SelectItem value={option.value as string}>
+                      {option.label}
+                    </SelectItem>
                   ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
           );
         case FormFieldType.DatePicker:
-          return <DatePicker />;
+          return (
+            <DatePicker
+              setDate={(date) => {
+                formFieldDetails.onChange({
+                  [formFieldDetails.key]: date,
+                });
+              }}
+              date={formFieldDetails.value as string}
+            />
+          );
         case FormFieldType.Switch:
           return (
             <Switch
-              checked={formFieldDetails.value}
-              onChange={(checked) =>
-                form.onChange({ [formFieldDetails.key]: checked })
-              }
+              checked={formFieldDetails.value as boolean}
+              onCheckedChange={(checked) => {
+                form.onChange({ [formFieldDetails.key]: checked });
+              }}
             />
           );
         default:
@@ -117,19 +127,12 @@ const FormVisualizer = memo(({ form }: { form: FormDetails }) => {
   );
 
   return (
-    <form className='form-visualizer'>
+    <form onSubmit={(event) => event.preventDefault()} className='form-builder'>
       {form.inputs.map((details) => (
         <Fragment key={details.key}>
-          <div className='form-field'>
-            {details.label && (
-              <label className='form-label'>{details.label}</label>
-            )}
-            {renderField(details)}
-          </div>
+          <div className='form-field'>{renderField(details)}</div>
         </Fragment>
       ))}
     </form>
   );
-});
-
-export default FormVisualizer;
+}

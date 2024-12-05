@@ -11,24 +11,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import usePagination from "@/hooks/usePagination";
 import UserExamsService, { UserExamDetails } from "@/service/UserExamsService";
-import UserService from "@/service/UserService";
 import { Eye, RefreshCcw, RotateCcw, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useQuery } from "react-query";
 
 export default function Permissions() {
+  const paginationDetails = usePagination();
   const { data } = useQuery({
     queryFn: UserExamsService.getAll,
-    queryKey: ["all-user-exams"],
+    queryKey: ["permissions-exams"],
   });
-
   const [filters, setFilters] = useState({
     examName: "",
     group: "",
@@ -169,7 +171,11 @@ export default function Permissions() {
           <RotateCcw />
         </Button>
       </div>
-      <CustomTable columns={columns} data={data} />
+      <CustomTable
+        paginationDetails={paginationDetails}
+        columns={columns}
+        data={data?.permissions || []}
+      />
     </div>
   );
 }
@@ -180,6 +186,9 @@ const columns: Column<UserExamDetails>[] = [
     accessor: "id",
     align: "center",
     className: "row-number",
+    render: (_row, _rowIndex, relativeRowNumber) => {
+      return relativeRowNumber;
+    },
   },
   {
     header: "İmtahan adı",
@@ -218,6 +227,21 @@ const columns: Column<UserExamDetails>[] = [
     align: "center",
     className: "attempts-count",
     render: (data: UserExamDetails) => data.attemptCount,
+  },
+  {
+    header: "İcazə",
+    accessor: "hasAccess",
+    align: "center",
+    className: "attempts-count",
+    render: (data: UserExamDetails) => {
+      return (
+        <Switch
+          defaultChecked={data.hasAccess}
+          onCheckedChange={(value) => changeUserAccess(data.id, value)}
+          className='mx-auto'
+        />
+      );
+    },
   },
   {
     header: "Əməliyyatlar",
@@ -264,11 +288,18 @@ const columns: Column<UserExamDetails>[] = [
   },
 ];
 
-// Placeholder functions for actions
 function viewAnswerSheet(id: number) {
   // Implement logic to view the answer sheet
 }
 
-function allowRetake(id: number) {
-  // Implement logic to allow the user to retake the exam
+function allowRetake(id: number) {}
+
+async function changeUserAccess(id: number, access: boolean) {
+  const { error } = await UserExamsService.changeUserAccess(id, access);
+
+  if (error) {
+    toast.error("İcazə verərkən xəta baş verdi");
+  } else {
+    toast.success("Uğurla icazə dəyişdirildi");
+  }
 }

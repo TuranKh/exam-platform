@@ -7,19 +7,21 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { PaginationDetails } from "@/hooks/usePagination";
+import { useMemo } from "react";
 
 interface CustomPaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+  paginationDetails: PaginationDetails;
 }
 
 export default function CustomPagination({
-  currentPage,
-  totalPages,
-  onPageChange,
+  paginationDetails,
 }: CustomPaginationProps) {
-  const getPageNumbers = () => {
+  const totalPages = Math.ceil(
+    paginationDetails.totalRowsNumber / paginationDetails.perPage,
+  );
+
+  const pageNumbers = useMemo(() => {
     const pages: (number | "ellipsis")[] = [];
 
     if (totalPages <= 7) {
@@ -29,8 +31,8 @@ export default function CustomPagination({
     } else {
       pages.push(1);
 
-      const left = currentPage - 1;
-      const right = currentPage + 1;
+      const left = paginationDetails.page - 1;
+      const right = paginationDetails.page + 1;
 
       if (left > 2) {
         pages.push("ellipsis");
@@ -54,9 +56,7 @@ export default function CustomPagination({
     }
 
     return pages;
-  };
-
-  const pageNumbers = getPageNumbers();
+  }, []);
 
   return (
     <Pagination>
@@ -64,11 +64,11 @@ export default function CustomPagination({
         <PaginationItem>
           <PaginationPrevious
             href='#'
-            hidden={currentPage === 1}
+            hidden={paginationDetails.page === 1}
             onClick={(e) => {
               e.preventDefault();
-              if (currentPage > 1) {
-                onPageChange(currentPage - 1);
+              if (paginationDetails.page > 1) {
+                paginationDetails.setPage(paginationDetails.page - 1);
               }
             }}
           />
@@ -86,10 +86,10 @@ export default function CustomPagination({
               <PaginationItem key={page}>
                 <PaginationLink
                   href='#'
-                  isActive={page === currentPage}
+                  isActive={page === paginationDetails.page}
                   onClick={(e) => {
                     e.preventDefault();
-                    onPageChange(page as number);
+                    paginationDetails.setPage(page as number);
                   }}
                 >
                   {page}
@@ -102,11 +102,11 @@ export default function CustomPagination({
         <PaginationItem>
           <PaginationNext
             href='#'
-            hidden={currentPage === totalPages}
+            hidden={paginationDetails.page === totalPages}
             onClick={(e) => {
               e.preventDefault();
-              if (currentPage < totalPages) {
-                onPageChange(currentPage + 1);
+              if (paginationDetails.page < totalPages) {
+                paginationDetails.setPage(paginationDetails.page + 1);
               }
             }}
           />

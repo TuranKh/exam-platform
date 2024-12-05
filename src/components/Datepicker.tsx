@@ -1,22 +1,26 @@
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, setDefaultOptions } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { FC } from "react";
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { az } from "date-fns/locale";
 
 type DatePickerProps = {
   date: string | null;
   setDate: (date: string | null) => void;
-  maxDate: Date | null;
-  minDate: Date | null;
+  maxDate?: Date | null;
+  minDate?: Date | null;
 };
 
-const DatePicker: React.FC<DatePickerProps> = function ({
+setDefaultOptions({ locale: az });
+
+const DatePicker: FC<DatePickerProps> = function ({
   date,
   setDate,
   maxDate = null,
-  minDate = new Date("1900-01-01"),
+  minDate = null,
 }) {
   return (
     <Popover>
@@ -29,7 +33,7 @@ const DatePicker: React.FC<DatePickerProps> = function ({
           )}
         >
           <CalendarIcon />
-          {date ? format(date, "PPP") : <span>Tarix seçin</span>}
+          {date ? format(date, "PP") : <span>Tarix seçin</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className='w-auto p-0' align='start'>

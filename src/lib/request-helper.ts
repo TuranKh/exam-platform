@@ -8,7 +8,18 @@ export default class RequestHelper {
         const date = DateUtils.getServerDate(value as Date);
         result.eq(key, date);
       } else {
-        result.like(key, value);
+        if (typeof value === "string") {
+          if (value !== "true" && value !== "false") {
+            result.ilike(key, value.trim());
+          } else {
+            // boolean from select options
+            result.eq(key, JSON.parse(value));
+          }
+        } else if (typeof value === "boolean") {
+          result.eq(key, value);
+        } else {
+          result.like(key, true);
+        }
       }
     });
 
