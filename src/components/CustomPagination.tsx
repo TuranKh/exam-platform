@@ -17,9 +17,13 @@ interface CustomPaginationProps {
 export default function CustomPagination({
   paginationDetails,
 }: CustomPaginationProps) {
-  const totalPages = Math.ceil(
-    paginationDetails.totalRowsNumber / paginationDetails.perPage,
-  );
+  const totalPages = useMemo(() => {
+    return Math.ceil(
+      paginationDetails.totalRowsNumber / paginationDetails.perPage,
+    );
+  }, [paginationDetails.totalRowsNumber, paginationDetails.perPage]);
+
+  console.log(totalPages);
 
   const pageNumbers = useMemo(() => {
     const pages: (number | "ellipsis")[] = [];
@@ -56,7 +60,7 @@ export default function CustomPagination({
     }
 
     return pages;
-  }, []);
+  }, [paginationDetails.page, totalPages]);
 
   return (
     <Pagination>
@@ -86,10 +90,10 @@ export default function CustomPagination({
               <PaginationItem key={page}>
                 <PaginationLink
                   href='#'
-                  isActive={page === paginationDetails.page}
+                  isActive={page - 1 === paginationDetails.page}
                   onClick={(e) => {
                     e.preventDefault();
-                    paginationDetails.setPage(page as number);
+                    paginationDetails.setPage((page - 1) as number);
                   }}
                 >
                   {page}

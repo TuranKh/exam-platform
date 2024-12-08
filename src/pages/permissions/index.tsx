@@ -1,223 +1,178 @@
 import CustomTable, { Column } from "@/components/CustomtTable";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import Search from "@/components/Search";
 import { Switch } from "@/components/ui/switch";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import useFilter, { Filter } from "@/hooks/useFilter";
 import usePagination from "@/hooks/usePagination";
+import ExamService from "@/service/ExamService";
+import GroupService from "@/service/GroupService";
 import UserExamsService, { UserExamDetails } from "@/service/UserExamsService";
-import { Eye, RefreshCcw, RotateCcw, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
+
+export type UserExamFilters = {
+  groupName: string;
+  userName: string;
+  hasAccess: boolean;
+};
 
 export default function Permissions() {
-  const paginationDetails = usePagination();
-  const { data } = useQuery({
-    queryFn: UserExamsService.getAll,
+  const { filters, resetFilters, setFilters } =
+    useFilter<Filter<UserExamFilters>>();
+  const paginationDetails = usePagination(10);
+  const queryClient = useQueryClient();
+  const {
+    data: exams,
+    isFetching: isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["permissions-exams"],
-  });
-  const [filters, setFilters] = useState({
-    examName: "",
-    group: "",
-    finished: "",
-    resultRange: [0, 100] as [number, number],
+    queryFn: () => UserExamsService.getAll(filters, paginationDetails),
+    cacheTime: 0,
   });
 
   useEffect(() => {
-    const storedFilters = localStorage.getItem("examFilters");
-    if (storedFilters) {
-      setFilters(JSON.parse(storedFilters));
-    }
-  }, []);
+    paginationDetails.setTotalRowsNumber(exams?.count || 0);
+  }, [exams, paginationDetails]);
 
   useEffect(() => {
-    localStorage.setItem("examFilters", JSON.stringify(filters));
-  }, [filters]);
+    refetch();
+  }, [paginationDetails.page, refetch]);
 
-  const handleResetAll = () => {
-    setFilters({
-      examName: "",
-      group: "",
-      finished: "",
-      resultRange: [0, 100],
-    });
+  const { data: examOptions } = useQuery({
+    queryFn: ExamService.getAllForSelect,
+    queryKey: ["exams-select"],
+  });
+
+  const { data: allGroups } = useQuery({
+    queryFn: GroupService.getAllForSelect,
+    queryKey: ["all-select-groups"],
+  });
+
+  const handleAccessToggle = useCallback(
+    async (id: number, hasAccess: boolean) => {
+      const { error } = await UserExamsService.changeUserAccess(id, hasAccess);
+      if (error) {
+        toast.error("İcazə verərkən xəta baş verdi");
+        return;
+      }
+      toast.success("Uğurla icazə dəyişdirildi");
+      queryClient.invalidateQueries({
+        queryKey: ["permissions-exams"],
+      });
+    },
+    [queryClient],
+  );
+
+  const columns = useMemo(() => {
+    return [
+      ...staticColumns,
+      {
+        header: "İcazə",
+        accessor: "hasAccess",
+        align: "center",
+        render: (data: UserExamDetails) => (
+          <Switch
+            checked={data.hasAccess}
+            onClick={() => handleAccessToggle(data.id, !data.hasAccess)}
+            className='mx-auto'
+          />
+        ),
+      },
+    ];
+  }, [handleAccessToggle]);
+
+  const onSearch = function (params: Filter<UserExamFilters>) {
+    setFilters(params);
+    refetch();
+  };
+
+  const onReset = function () {
+    resetFilters();
+    refetch();
   };
 
   return (
     <div className='p-6 space-y-4'>
       <h1 className='text-2xl font-bold'>İcazələr</h1>
 
-      <div className='flex space-x-4 items-end'>
-        {/* Exam Name Filter */}
-        <div className='w-1/4'>
-          <Select
-            onValueChange={(value) =>
-              setFilters({ ...filters, examName: value })
-            }
-          >
-            <SelectTrigger className='w-full'>
-              <SelectValue placeholder='İmtahan adları' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>İmtahan adları</SelectLabel>
-                <SelectItem value='null'>Hamısı</SelectItem>{" "}
-                {/* {[...new Set(data.map((item) => item.examName))].map((name) => (
-                  <SelectItem key={name} value={name}>
-                    {name}
-                  </SelectItem>
-                ))} */}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className='w-1/4'>
-          <Select
-            onValueChange={(value) => setFilters({ ...filters, group: value })}
-          >
-            <SelectTrigger className='w-full'>
-              <SelectValue placeholder='Qruplar' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Qruplar</SelectLabel>
-                <SelectItem value='null'>Hamısı</SelectItem>{" "}
-                {/* {[...new Set(data.map((item) => item.group))].map((group) => (
-                  <SelectItem key={group} value={group}>
-                    {group}
-                  </SelectItem>
-                ))} */}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className='w-1/4'>
-          <Select
-            onValueChange={(value) =>
-              setFilters({ ...filters, finished: value })
-            }
-          >
-            <SelectTrigger className='w-full'>
-              <SelectValue placeholder='Status' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Status</SelectLabel>
-                <SelectItem value='null'>Hamısı</SelectItem>{" "}
-                {/* Reset option */}
-                <SelectItem value='finished'>Tamamlanmış</SelectItem>
-                <SelectItem value='notFinished'>Tamamlanmamış</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className='w-1/4 flex flex-col items-start gap-2'>
-          <Label>Nəticə aralığı:</Label>
-          <div className='flex w-full'>
-            <Input
-              type='number'
-              min='0'
-              max={filters.resultRange[1]}
-              value={filters.resultRange[0]}
-              onChange={(e) =>
-                setFilters({
-                  ...filters,
-                  resultRange: [Number(e.target.value), filters.resultRange[1]],
-                })
-              }
-              className='mx-1 w-1/2'
-            />
-            <span>-</span>
-            <Input
-              type='number'
-              min={filters.resultRange[0]}
-              max='100'
-              value={filters.resultRange[1]}
-              onChange={(e) =>
-                setFilters({
-                  ...filters,
-                  resultRange: [filters.resultRange[0], Number(e.target.value)],
-                })
-              }
-              className='mx-1 w-1/2'
-            />
-          </div>
-        </div>
-
-        <Button onClick={() => console.log("Search action")} className='ml-4'>
-          Axtar
-          <Search />
-        </Button>
-        <Button variant='secondary' onClick={handleResetAll} className='mt-4'>
-          Axtarışı sıfırla
-          <RotateCcw />
-        </Button>
-      </div>
+      <Search<UserExamFilters>
+        onSearch={onSearch}
+        onReset={onReset}
+        formDetails={{
+          inputs,
+          options: {
+            groupId: allGroups || [],
+            examId: examOptions || [],
+          },
+        }}
+      />
       <CustomTable
         paginationDetails={paginationDetails}
+        isLoading={isLoading}
         columns={columns}
-        data={data?.permissions || []}
+        data={exams?.permissions || []}
       />
     </div>
   );
 }
 
-const columns: Column<UserExamDetails>[] = [
+const inputs = [
+  {
+    key: "examId",
+    label: "İmtahan adı",
+    type: "select",
+  },
+  {
+    key: "groupId",
+    label: "Qrup",
+    type: "select",
+  },
+  {
+    key: "hasAccess",
+    label: "İcazə",
+    type: "select",
+  },
+  {
+    key: "resultRange",
+    label: "Nəticə aralığı",
+    type: "range",
+    min: 0,
+    max: 100,
+  },
+];
+
+const staticColumns: Column<UserExamDetails>[] = [
   {
     header: "№",
     accessor: "id",
     align: "center",
     className: "row-number",
-    render: (_row, _rowIndex, relativeRowNumber) => {
-      return relativeRowNumber;
-    },
+    render: (_row, _rowIndex, relativeRowNumber) => relativeRowNumber,
   },
   {
     header: "İmtahan adı",
     accessor: "examName",
     align: "left",
-    className: "exam-name",
     render: (data: UserExamDetails) => data.exams.name,
   },
   {
     header: "İştirakçının adı",
     accessor: "participantName",
     align: "left",
-    className: "participant-name",
     render: (data: UserExamDetails) =>
       `${data.users.name} ${data.users.surname}`,
   },
   {
-    header: "Status",
-    accessor: "status",
+    header: "Qrup",
+    accessor: "participantName",
     align: "left",
-    className: "status",
-    render: (data: UserExamDetails) =>
-      data.isFinished ? "Tamamlandı" : "Gözlənilir",
+    render: (data: UserExamDetails) => data.users.groupName,
   },
   {
     header: "Nəticə",
     accessor: "result",
     align: "center",
-    className: "result",
     render: (data: UserExamDetails) =>
       data.isFinished && data.score !== null ? `${data.score}%` : "-",
   },
@@ -225,81 +180,6 @@ const columns: Column<UserExamDetails>[] = [
     header: "Cəhd sayı",
     accessor: "attemptCount",
     align: "center",
-    className: "attempts-count",
     render: (data: UserExamDetails) => data.attemptCount,
   },
-  {
-    header: "İcazə",
-    accessor: "hasAccess",
-    align: "center",
-    className: "attempts-count",
-    render: (data: UserExamDetails) => {
-      return (
-        <Switch
-          defaultChecked={data.hasAccess}
-          onCheckedChange={(value) => changeUserAccess(data.id, value)}
-          className='mx-auto'
-        />
-      );
-    },
-  },
-  {
-    header: "Əməliyyatlar",
-    accessor: "actions",
-    align: "center",
-    className: "actions",
-    render: (data: UserExamDetails) => (
-      <div className='flex space-x-2 justify-center'>
-        {data.isFinished ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Button
-                  onClick={() => viewAnswerSheet(data.id)}
-                  variant='secondary'
-                >
-                  <Eye />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Cavablarına baxış keçir</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Button
-                  onClick={() => allowRetake(data.id)}
-                  variant='secondary'
-                >
-                  <RefreshCcw />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Yenidən icazə ver</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
-    ),
-  },
 ];
-
-function viewAnswerSheet(id: number) {
-  // Implement logic to view the answer sheet
-}
-
-function allowRetake(id: number) {}
-
-async function changeUserAccess(id: number, access: boolean) {
-  const { error } = await UserExamsService.changeUserAccess(id, access);
-
-  if (error) {
-    toast.error("İcazə verərkən xəta baş verdi");
-  } else {
-    toast.success("Uğurla icazə dəyişdirildi");
-  }
-}

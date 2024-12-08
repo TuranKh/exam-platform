@@ -7,17 +7,17 @@ import {
 } from "@/components/FormBuilder";
 import Search from "@/components/Search";
 import { Switch } from "@/components/ui/switch";
+import useFilter from "@/hooks/useFilter";
 import usePagination from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
 import ExamService, { ExamDetails, ExamFilters } from "@/service/ExamService";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate } from "react-router-dom";
 
-let filters = {};
-
 export default function Exams() {
+  let filters = useFilter();
   const paginationDetails = usePagination();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -30,12 +30,6 @@ export default function Exams() {
     queryFn: () => ExamService.getAllExams(filters),
     cacheTime: 0,
   });
-
-  useEffect(() => {
-    return () => {
-      filters = {};
-    };
-  }, []);
 
   const handleStatusToggle = useCallback(
     async (id: number, isActive: boolean) => {
@@ -110,23 +104,11 @@ export default function Exams() {
       <h1 className='text-2xl font-bold'>İmtahanlar</h1>
 
       <Search<ExamFilters>
-        // inputs={inputs}
         onSearch={onSearch}
         onReset={onReset}
         formDetails={{
           inputs,
-          options: {
-            isActive: [
-              {
-                label: "Aktiv",
-                value: "true",
-              },
-              {
-                label: "Deaktiv",
-                value: "false",
-              },
-            ],
-          },
+          options,
         }}
       />
       <CustomTable
@@ -156,6 +138,19 @@ const inputs: InputDetails[] = [
     type: FormFieldType.Select,
   },
 ];
+
+const options = {
+  isActive: [
+    {
+      label: "Aktiv",
+      value: "true",
+    },
+    {
+      label: "Deaktiv",
+      value: "false",
+    },
+  ],
+};
 
 const staticColumns = [
   {

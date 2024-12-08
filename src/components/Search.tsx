@@ -40,22 +40,26 @@ export default function Search<T>({
   };
 
   return (
-    <>
-      <div className='flex items-end flex-wrap gap-2'>
-        <FormBuilder
-          form={{
-            ...formDetails,
-            onChange: onFormChange,
-            values: searchForm,
-          }}
-        />
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSearchClick();
+      }}
+      className='flex items-end flex-wrap gap-2'
+    >
+      <FormBuilder
+        form={{
+          ...formDetails,
+          onChange: onFormChange,
+          values: searchForm,
+        }}
+      />
 
-        <Button onClick={onSearchClick}>Axtar</Button>
-        <Button variant='secondary' onClick={handleResetAll}>
-          Axtarışı sıfırla
-          <RotateCcw />
-        </Button>
-      </div>
-    </>
+      <Button type='submit'>Axtar</Button>
+      <Button variant='secondary' onClick={handleResetAll}>
+        Axtarışı sıfırla
+        <RotateCcw />
+      </Button>
+    </form>
   );
 }

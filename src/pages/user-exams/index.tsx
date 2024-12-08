@@ -1,5 +1,5 @@
 import ActionsDropdown from "@/components/ActionsDropdown";
-import CustomTable from "@/components/CustomtTable";
+import CustomTable, { Column } from "@/components/CustomtTable";
 import usePagination from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
 import ExamService, { ExamDetails } from "@/service/ExamService";
@@ -60,7 +60,7 @@ export default function UserExams() {
   );
 }
 
-const staticColumns = [
+const staticColumns: Column<ExamDetails>[] = [
   {
     header: "№",
     accessor: "id",

@@ -1,7 +1,10 @@
+import { Filter } from "@/hooks/useFilter";
+import { calculateRange } from "@/hooks/usePagination";
+import RequestHelper from "@/lib/request-helper";
+import { UserExamFilters } from "@/pages/permissions";
 import { supabase } from "@/supabase/init";
 import { ExamDetails } from "./ExamService";
 import { UserDetails } from "./UserService";
-import { calculateRange } from "@/hooks/usePagination";
 
 export default class UserExamsService {
   static async startExam({ examId, userId, deadline }) {
@@ -11,13 +14,15 @@ export default class UserExamsService {
       .select();
   }
 
-  static async getAll(paginationDetails?: PaginationRequest): Promise<{
+  static async getAll(
+    filters: Filter<UserExamFilters>,
+    paginationDetails?: PaginationRequest,
+  ): Promise<{
     permissions: UserExamDetails[];
     count: number;
   }> {
     const range = calculateRange(paginationDetails);
-
-    const { data, count } = await supabase
+    const initialQuery = supabase
       .from("user-exams")
       .select(
         `
@@ -29,6 +34,7 @@ export default class UserExamsService {
     duration,
     attemptCount,
     hasAccess,
+    groupId,
     exams (
       id,
       name,
@@ -45,8 +51,12 @@ export default class UserExamsService {
   `,
         { count: "exact" },
       )
-      .order("hasAccess", { ascending: false })
-      .range(...range);
+      .order("hasAccess", { ascending: false });
+
+    const finalQuery = RequestHelper.applyFilters(initialQuery, filters);
+    finalQuery.range(...range);
+
+    const { data, count } = await finalQuery;
     if (count) {
       return { permissions: data, count };
     }
@@ -54,15 +64,12 @@ export default class UserExamsService {
   }
 
   static async changeUserAccess(rowId: number, permission: boolean) {
-    console.log(permission);
-    console.log(rowId);
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("user-exams")
       .update({ hasAccess: permission })
       .eq("id", rowId)
       .select("*");
 
-    console.log(data);
     return { error };
   }
 }

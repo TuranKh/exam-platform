@@ -1,4 +1,6 @@
+import { Filter } from "@/hooks/useFilter";
 import RequestHelper from "@/lib/request-helper";
+import { UsedFilters } from "@/pages/users";
 import { supabase } from "@/supabase/init";
 
 export default class UserService {
@@ -49,10 +51,30 @@ export default class UserService {
     return data;
   }
 
-  static async getAllUsersDetails() {
-    const { data } = await supabase.from("users-details").select("*");
+  static async getAllUsersDetails(filters: Filter<UsedFilters>) {
+    const initialQuery = supabase.from("users-details").select("*");
+    const finalQuery = RequestHelper.applyFilters(initialQuery, filters);
 
-    return data;
+    return (await finalQuery).data;
+  }
+
+  static async changeUserAccess(rowId: number, isPending: boolean) {
+    const { error } = await supabase
+      .from("users")
+      .update({ isPending })
+      .eq("id", rowId)
+      .select("*");
+
+    return { error };
+  }
+
+  static async changeUserGroup(newGroupId: number, userId: number) {
+    const response = await supabase
+      .from("users")
+      .update({ groupId: newGroupId })
+      .eq("id", userId);
+
+    return response.error;
   }
 }
 

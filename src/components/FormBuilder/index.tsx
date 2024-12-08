@@ -79,25 +79,34 @@ export default function FormBuilder({ form }: { form: FormDetails }) {
           );
         case FormFieldType.Select:
           return (
-            <Select
-              value={formFieldDetails.value as string}
-              onValueChange={(value) => {
-                form.onChange({ [formFieldDetails.key]: value });
-              }}
-            >
-              <SelectTrigger className='w-full'>
-                <SelectValue placeholder='Status' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {form.options?.[formFieldDetails.key]?.map((option) => (
-                    <SelectItem value={option.value as string}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <>
+              {JSON.stringify(!!formFieldDetails.value)}
+              <Select
+                value={
+                  formFieldDetails.value
+                    ? String(formFieldDetails.value)
+                    : undefined
+                }
+                onValueChange={(value) => {
+                  form.onChange({ [formFieldDetails.key]: value });
+                }}
+              >
+                <SelectTrigger className='w-full'>
+                  <SelectValue
+                    placeholder={formFieldDetails.label || "Temporary"}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {form.options?.[formFieldDetails.key]?.map((option) => (
+                      <SelectItem value={String(option.value)}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </>
           );
         case FormFieldType.DatePicker:
           return (
@@ -127,12 +136,12 @@ export default function FormBuilder({ form }: { form: FormDetails }) {
   );
 
   return (
-    <form onSubmit={(event) => event.preventDefault()} className='form-builder'>
+    <div onSubmit={(event) => event.preventDefault()} className='form-builder'>
       {form.inputs.map((details) => (
         <Fragment key={details.key}>
           <div className='form-field'>{renderField(details)}</div>
         </Fragment>
       ))}
-    </form>
+    </div>
   );
 }

@@ -1,19 +1,44 @@
-import ActionsDropdown from "@/components/ActionsDropdown";
 import CustomTable, { Column } from "@/components/CustomtTable";
+import { FormFieldType, InputDetails } from "@/components/FormBuilder";
+import Search from "@/components/Search";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import useFilter, { Filter } from "@/hooks/useFilter";
 import usePagination from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
+import GroupService, { GroupDetails } from "@/service/GroupService";
 import UserService, { UserDetails } from "@/service/UserService";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import toast from "react-hot-toast";
 import { useQuery } from "react-query";
+
+export type UsedFilters = Pick<
+  UserDetails,
+  "name" | "surname" | "patronymic" | "email" | "groupName" | "isPending"
+>;
 
 export default function UsersComponent() {
   const paginationDetails = usePagination();
+  const { filters, resetFilters, setFilters } = useFilter<UsedFilters>();
 
-  const { data: allUsers } = useQuery({
-    queryFn: UserService.getAllNonAdmins,
-    queryKey: ["non-admins"],
+  const { data: allUsers, refetch } = useQuery({
+    queryFn: () => {
+      return UserService.getAllUsersDetails(filters);
+    },
+    queryKey: ["all-users-details"],
+  });
+
+  const { data: allGroups } = useQuery({
+    queryFn: GroupService.getAllForSelect,
+    queryKey: ["all-select-groups"],
   });
 
   const userColumns: Column<UserDetails>[] = useMemo(
@@ -42,20 +67,41 @@ export default function UsersComponent() {
       },
       {
         header: "Qrup",
-        accessor: "group",
+        accessor: "groupName",
         align: "left",
-      },
-      {
-        header: "Status",
-        accessor: "status",
-        align: "center",
-        render: (data) => (
-          <Switch
-            checked={data.isPending}
-            onCheckedChange={(checked) => handleStatusToggle(data.id, checked)}
-            className='mx-auto'
-          />
-        ),
+        render: (data) => {
+          return (
+            <Select
+              value={data.groupId ? String(data.groupId) : "null"}
+              onValueChange={async (value) => {
+                const error = await UserService.changeUserGroup(
+                  Number(value),
+                  data.id,
+                );
+
+                if (error) {
+                  toast.error("Qrup dəyişərkən xəta baş verdi!");
+                } else {
+                  toast.success("Qrup uğurla dəyişdirildi");
+                  refetch();
+                }
+              }}
+            >
+              <SelectTrigger className='w-full'>
+                <SelectValue placeholder={data.groupName} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {allGroups?.map((option) => (
+                    <SelectItem value={String(option.value)}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          );
+        },
       },
       {
         header: "Yaradılma tarixi",
@@ -65,16 +111,43 @@ export default function UsersComponent() {
           DateUtils.getUserFriendlyDate(new Date(data.createdAt)),
       },
       {
-        header: "",
-        accessor: "action",
+        header: "Gözləmədə",
+        accessor: "isPending",
         align: "center",
         render: (data) => (
-          <ActionsDropdown onDelete={() => handleDeleteUser(data.id)} />
+          <Switch
+            checked={data.isPending}
+            onCheckedChange={(checked) => handleStatusToggle(data.id, checked)}
+            className='mx-auto'
+          />
         ),
       },
     ],
-    [],
+    [allGroups, refetch],
   );
+
+  const handleStatusToggle = useCallback(
+    async (userId: number, checked: boolean) => {
+      const { error } = await UserService.changeUserAccess(userId, checked);
+
+      if (error) {
+        toast.error("İcazə verərkən xəta baş verdi");
+      } else {
+        toast.success("Uğurla icazə dəyişdirildi");
+        refetch();
+      }
+    },
+    [refetch],
+  );
+
+  const onReset = function () {
+    refetch();
+  };
+
+  const onSearch = function (searchFilter: Filter<UsedFilters>) {
+    setFilters(searchFilter);
+    refetch();
+  };
 
   return (
     <div className='flex-1 space-y-4 p-8 pt-6'>
@@ -85,36 +158,18 @@ export default function UsersComponent() {
         </TabsList>
 
         <TabsContent value='management' className='space-y-4'>
-          {/* <div className='flex space-x-4 items-end'>
-            <div className='w-1/4'>
-              <Input
-                placeholder='İstifadəçi adı'
-                value={filters.name}
-                onChange={(e) =>
-                  setFilters({ ...filters, name: e.target.value })
-                }
-              />
-            </div>
-            <div className='w-1/4'>
-              <Input
-                placeholder='Email'
-                value={filters.email}
-                onChange={(e) =>
-                  setFilters({ ...filters, email: e.target.value })
-                }
-              />
-            </div>
-            <Button onClick={handleSearch} className='ml-4'>
-              Axtar
-            </Button>
-            <Button
-              variant='secondary'
-              onClick={handleResetFilters}
-              className='mt-4'
-            >
-              Axtarışı sıfırla
-            </Button>
-          </div> */}
+          <Search<UsedFilters>
+            onReset={onReset}
+            onSearch={onSearch}
+            formDetails={{
+              inputs,
+              options: {
+                isPending: options.isPending,
+                groupId: allGroups || [],
+              },
+            }}
+          />
+
           <CustomTable
             paginationDetails={paginationDetails}
             columns={userColumns}
@@ -123,53 +178,135 @@ export default function UsersComponent() {
         </TabsContent>
 
         <TabsContent value='groups' className='space-y-4'>
-          {/* <div className='flex space-x-4 items-end'>
-            <div className='w-1/4'>
-              <Select
-                onValueChange={(value) =>
-                  setGroupFilters({ ...groupFilters, group: value })
-                }
-              >
-                <SelectTrigger className='w-full'>
-                  <SelectValue placeholder='Qrup seçin' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Qruplar</SelectLabel>
-                    <SelectItem value='Qrup A'>Qrup A</SelectItem>
-                    <SelectItem value='Qrup B'>Qrup B</SelectItem>
-                    <SelectItem value='Qrup C'>Qrup C</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className='flex items-center space-x-2'>
-              <Switch
-                checked={groupFilters.noGroupOnly}
-                onCheckedChange={(checked) =>
-                  setGroupFilters({ ...groupFilters, noGroupOnly: checked })
-                }
-              />
-              <span>Qrupsuz istifadəçilər</span>
-            </div>
-            <Button onClick={handleGroupSearch} className='ml-4'>
-              Axtar
-            </Button>
-            <Button
-              variant='secondary'
-              onClick={handleGroupResetFilters}
-              className='mt-4'
-            >
-              Axtarışı sıfırla
-            </Button>
-          </div> */}
-          <CustomTable
-            paginationDetails={paginationDetails}
-            columns={userColumns}
-            data={[]}
-          />
+          <Groups />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
+
+export type GroupFilters = Omit<GroupDetails, "id">;
+
+function Groups() {
+  const paginationDetails = usePagination();
+  const { filters, setFilters, resetFilters } = useFilter<GroupFilters>();
+
+  const { data: allGroups, refetch } = useQuery({
+    queryFn: () => {
+      return GroupService.getAll(filters);
+    },
+    queryKey: ["all-groups"],
+  });
+
+  const { data: allSelectGroups } = useQuery({
+    queryFn: () => {
+      return GroupService.getAllForSelect(false);
+    },
+    queryKey: ["all-select-groups-no-null"],
+  });
+
+  const onReset = function () {
+    resetFilters();
+    refetch();
+  };
+
+  const onSearch = function (searchFilter: Filter<GroupFilters>) {
+    setFilters(searchFilter);
+    refetch();
+  };
+
+  return (
+    <>
+      <Search<GroupFilters>
+        onReset={onReset}
+        onSearch={onSearch}
+        formDetails={{
+          inputs: groupInputs,
+          options: {
+            isPending: options.isPending,
+            id: allSelectGroups || [],
+          },
+        }}
+      />
+      <CustomTable
+        paginationDetails={paginationDetails}
+        columns={groupColumns}
+        data={allGroups || []}
+      />
+    </>
+  );
+}
+
+const groupColumns: Column<GroupDetails>[] = [
+  {
+    header: "Adı",
+    accessor: "name",
+    align: "left",
+  },
+  {
+    header: "Yaradılma tarixi",
+    accessor: "createdAt",
+    align: "left",
+    render: (data) => {
+      return DateUtils.getUserFriendlyDate(new Date(data.createdAt));
+    },
+  },
+];
+
+const options = {
+  isPending: [
+    {
+      label: "Bəli",
+      value: "true",
+    },
+    {
+      label: "Xeyr",
+      value: "false",
+    },
+  ],
+};
+
+const groupInputs: InputDetails[] = [
+  {
+    key: "id",
+    label: "Qrupun adı",
+    type: FormFieldType.Select,
+  },
+  {
+    key: "createdAt",
+    label: "Yaradılma tarixi",
+    type: FormFieldType.DatePicker,
+  },
+];
+const inputs: InputDetails[] = [
+  {
+    key: "name",
+    label: "Ad",
+    type: FormFieldType.Text,
+  },
+  {
+    key: "surname",
+    label: "Soyad",
+    type: FormFieldType.Text,
+  },
+  {
+    key: "patronymic",
+    label: "Ata adı",
+    type: FormFieldType.Text,
+  },
+  {
+    key: "groupId",
+    label: "Qrup",
+    type: FormFieldType.Select,
+  },
+  {
+    key: "createdAt",
+    label: "Tarix seçin",
+    type: FormFieldType.DatePicker,
+  },
+  {
+    key: "isPending",
+    label: "Gözləmədə",
+    type: FormFieldType.Select,
+  },
+];

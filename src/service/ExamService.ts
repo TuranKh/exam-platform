@@ -46,6 +46,15 @@ export default class ExamService {
     return result.data?.[0];
   }
 
+  static async getAllForSelect() {
+    const result = await supabase.from("exams").select(`
+      label:name, 
+      value:id
+    `);
+
+    return result.data;
+  }
+
   static async createExam(examDetails: NewExamDetails) {
     const { data, error } = await supabase
       .from("exams")
