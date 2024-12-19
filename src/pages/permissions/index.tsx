@@ -1,8 +1,9 @@
 import CustomTable, { Column } from "@/components/CustomtTable";
+import { FormFieldType, InputDetails } from "@/components/FormBuilder";
 import Search from "@/components/Search";
 import { Switch } from "@/components/ui/switch";
 import useFilter, { Filter } from "@/hooks/useFilter";
-import usePagination from "@/hooks/usePagination";
+import usePagination, { initialPage } from "@/hooks/usePagination";
 import ExamService from "@/service/ExamService";
 import GroupService from "@/service/GroupService";
 import UserExamsService, { UserExamDetails } from "@/service/UserExamsService";
@@ -26,7 +27,7 @@ export default function Permissions() {
     isFetching: isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["permissions-exams"],
+    queryKey: ["permissions-exams", filters],
     queryFn: () => UserExamsService.getAll(filters, paginationDetails),
     cacheTime: 0,
   });
@@ -84,7 +85,15 @@ export default function Permissions() {
 
   const onSearch = function (params: Filter<UserExamFilters>) {
     setFilters(params);
-    refetch();
+    resetPagination();
+  };
+
+  const resetPagination = function () {
+    if (paginationDetails.page !== initialPage) {
+      paginationDetails.setPage(initialPage);
+    } else {
+      refetch();
+    }
   };
 
   const onReset = function () {
@@ -102,8 +111,9 @@ export default function Permissions() {
         formDetails={{
           inputs,
           options: {
-            groupId: allGroups || [],
+            "users.groupId": allGroups || [],
             examId: examOptions || [],
+            hasAccess: hasAccessOptions,
           },
         }}
       />
@@ -117,28 +127,32 @@ export default function Permissions() {
   );
 }
 
-const inputs = [
+const hasAccessOptions = [
+  {
+    label: "İcazəsi var",
+    value: true,
+  },
+  {
+    label: "İcazəsi yoxdur",
+    value: false,
+  },
+];
+
+const inputs: InputDetails[] = [
   {
     key: "examId",
     label: "İmtahan adı",
-    type: "select",
+    type: FormFieldType.Select,
   },
   {
-    key: "groupId",
+    key: "users.groupId",
     label: "Qrup",
-    type: "select",
+    type: FormFieldType.Select,
   },
   {
     key: "hasAccess",
     label: "İcazə",
-    type: "select",
-  },
-  {
-    key: "resultRange",
-    label: "Nəticə aralığı",
-    type: "range",
-    min: 0,
-    max: 100,
+    type: FormFieldType.Select,
   },
 ];
 
@@ -154,20 +168,24 @@ const staticColumns: Column<UserExamDetails>[] = [
     header: "İmtahan adı",
     accessor: "examName",
     align: "left",
-    render: (data: UserExamDetails) => data.exams.name,
+    render: (data: UserExamDetails) => {
+      console.log({ data });
+      return data.exams.name;
+    },
   },
   {
     header: "İştirakçının adı",
     accessor: "participantName",
     align: "left",
     render: (data: UserExamDetails) =>
-      `${data.users.name} ${data.users.surname}`,
+      `${data?.users?.name} ${data?.users?.surname}`,
   },
   {
     header: "Qrup",
-    accessor: "participantName",
+    accessor: "groupName",
     align: "left",
-    render: (data: UserExamDetails) => data.users.groupName,
+    render: (data: UserExamDetails) =>
+      data.users?.groups?.name || "Qrupu yoxdur",
   },
   {
     header: "Nəticə",

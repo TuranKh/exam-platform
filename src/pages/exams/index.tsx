@@ -1,4 +1,5 @@
 import ActionsDropdown from "@/components/ActionsDropdown";
+import AddButton from "@/components/AddButton";
 import CustomTable from "@/components/CustomtTable";
 import {
   AvailableValues,
@@ -7,17 +8,17 @@ import {
 } from "@/components/FormBuilder";
 import Search from "@/components/Search";
 import { Switch } from "@/components/ui/switch";
-import useFilter from "@/hooks/useFilter";
-import usePagination from "@/hooks/usePagination";
+import useFilter, { Filter } from "@/hooks/useFilter";
+import usePagination, { initialPage } from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
 import ExamService, { ExamDetails, ExamFilters } from "@/service/ExamService";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Exams() {
-  let filters = useFilter();
+  const { filters, setFilters, resetFilters } = useFilter<ExamFilters>();
   const paginationDetails = usePagination();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -26,9 +27,18 @@ export default function Exams() {
     isFetching: isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["all-exams"],
-    queryFn: () => ExamService.getAllExams(filters),
+    queryKey: ["all-exams", filters],
+    queryFn: () => ExamService.getAllExams(filters, paginationDetails),
     cacheTime: 0,
+  });
+
+  useEffect(() => {
+    refetch();
+  }, [paginationDetails.page, refetch]);
+
+  const { data: examOptions } = useQuery({
+    queryFn: ExamService.getAllForSelect,
+    queryKey: ["exams-select"],
   });
 
   const handleStatusToggle = useCallback(
@@ -87,28 +97,35 @@ export default function Exams() {
     ];
   }, [handleStatusToggle, queryClient, navigate]);
 
-  const onSearch = function (
-    params: Record<keyof ExamFilters, AvailableValues>,
-  ) {
-    filters = params;
-    refetch();
+  const onSearch = function (params: Filter<ExamFilters>) {
+    setFilters(params);
+    if (paginationDetails.page === initialPage) {
+      refetch();
+    } else {
+      paginationDetails.setPage(0);
+    }
   };
 
   const onReset = function () {
-    filters = {};
+    resetFilters();
     refetch();
   };
 
   return (
     <div className='p-6 space-y-4'>
       <h1 className='text-2xl font-bold'>İmtahanlar</h1>
-
+      <Link to={"/create-exam"}>
+        <AddButton />
+      </Link>
       <Search<ExamFilters>
         onSearch={onSearch}
         onReset={onReset}
         formDetails={{
           inputs,
-          options,
+          options: {
+            isActive: options.isActive,
+            id: examOptions || [],
+          },
         }}
       />
       <CustomTable
@@ -123,9 +140,9 @@ export default function Exams() {
 
 const inputs: InputDetails[] = [
   {
-    key: "name",
+    key: "id",
     label: "İmtahan adı",
-    type: FormFieldType.Text,
+    type: FormFieldType.Select,
   },
   {
     key: "createdAt",

@@ -35,6 +35,7 @@ import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import DateUtils from "@/lib/date-utils";
+import AddButton from "@/components/AddButton";
 
 interface Question {
   id: string;
@@ -71,7 +72,6 @@ export default function Exam() {
         name: existingExamDetails.name,
       });
       setQuestions(() => {
-        console.log({ existingExamDetails });
         const existingQuestions = JSON.parse(existingExamDetails.questions);
         const existingAnswers = JSON.parse(existingExamDetails.answers);
         return existingQuestions.map(
@@ -145,7 +145,6 @@ export default function Exam() {
   async function editExam() {
     const randomIdentifier = crypto.randomUUID();
     const answers: Record<string, string | null> = {};
-    console.log({ questions });
     const questionDetails = await Promise.all(
       questions.map(async (questionDetails) => {
         let filePath: string | null | undefined = null;
@@ -176,7 +175,10 @@ export default function Exam() {
       questions: JSON.stringify(questionDetails),
       answers: JSON.stringify(answers),
     };
-    const requestResult = await ExamService.createExam(finalExamDetails);
+    const requestResult = await ExamService.updateExam(
+      Number(id!),
+      finalExamDetails,
+    );
 
     if (requestResult) {
       queryClient.invalidateQueries({
@@ -337,8 +339,9 @@ export default function Exam() {
                         strategy={rectSortingStrategy}
                       >
                         <div className='questions'>
-                          {questions.map((question) => (
+                          {questions.map((question, index) => (
                             <SortableItem
+                              index={index}
                               key={question.id}
                               question={question}
                               removePendingQuestion={removePendingQuestion}
@@ -378,6 +381,7 @@ const SortableItem = React.memo(function SortableItem({
   question,
   removePendingQuestion,
   updateCorrectAnswer,
+  index,
 }) {
   const { id } = question;
   const { attributes, listeners, setNodeRef, transform, transition, active } =
@@ -433,6 +437,9 @@ const SortableItem = React.memo(function SortableItem({
       style={style}
       className='relative border rounded-lg p-4 flex items-center'
     >
+      <div className='drag-handle mr-2 absolute top-2 left-2 p-1 rounded-full'>
+        Sual: {index + 1}
+      </div>
       <button
         type='button'
         onClick={() => removePendingQuestion(question.id)}
@@ -469,4 +476,4 @@ const SortableItem = React.memo(function SortableItem({
   );
 });
 
-const answerOptions = ["A", "B", "C", "D", "E"];
+export const answerOptions = ["A", "B", "C", "D", "E"];

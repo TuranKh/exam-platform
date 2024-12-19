@@ -12,6 +12,7 @@ import { useMemo } from "react";
 
 interface CustomPaginationProps {
   paginationDetails: PaginationDetails;
+  useEllipsis?: boolean;
 }
 
 export default function CustomPagination({
@@ -22,8 +23,6 @@ export default function CustomPagination({
       paginationDetails.totalRowsNumber / paginationDetails.perPage,
     );
   }, [paginationDetails.totalRowsNumber, paginationDetails.perPage]);
-
-  console.log(totalPages);
 
   const pageNumbers = useMemo(() => {
     const pages: (number | "ellipsis")[] = [];

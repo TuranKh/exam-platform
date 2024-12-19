@@ -5,6 +5,7 @@ import { UserExamFilters } from "@/pages/permissions";
 import { supabase } from "@/supabase/init";
 import { ExamDetails } from "./ExamService";
 import { UserDetails } from "./UserService";
+import { QueryData } from "@supabase/supabase-js";
 
 export default class UserExamsService {
   static async startExam({ examId, userId, deadline }) {
@@ -34,19 +35,20 @@ export default class UserExamsService {
     duration,
     attemptCount,
     hasAccess,
-    groupId,
     exams (
       id,
       name,
       duration,
       isActive
     ),
-    users (
+    users!inner (
       id,
       email,
       groupId, 
       name,
-      surname, patronymic
+      surname, 
+      patronymic,
+      groups (*)
     )
   `,
         { count: "exact" },

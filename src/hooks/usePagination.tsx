@@ -1,16 +1,22 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-const initialPage = 0;
-const initialPerPage = 10;
+export const initialPage = 0;
+export const initialPerPage = 10;
 
 export default function usePagination(perPageProp?: number): PaginationDetails {
   const [page, setPage] = useState(initialPage);
   const [totalRowsNumber, setTotalRowsNumber] = useState(0);
-  const [perPage, setPerPage] = useState(perPageProp || initialPerPage);
+  const [perPage, setPerPage] = useState(initialPerPage);
 
   useEffect(() => {
     setPage(initialPage);
   }, [perPage, totalRowsNumber]);
+
+  useEffect(() => {
+    if (perPageProp) {
+      setPerPage(perPageProp);
+    }
+  }, [perPageProp]);
 
   return {
     page,

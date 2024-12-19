@@ -25,5 +25,5 @@ export default function ProtectedRouter({
     return children;
   }
 
-  return <Navigate to='/not-found' />;
+  return <Navigate to='/pending' />;
 }

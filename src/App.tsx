@@ -7,9 +7,10 @@ import ProtectedRouter from "./components/ProtectedRouter";
 import { sidebarRoutes } from "./config/sidebar";
 import Dashboard from "./pages";
 import AuthPage from "./pages/auth";
-import UserExam from "./pages/user-exams/exam";
 import Exam from "./pages/exams/exam";
 import NotFound from "./pages/not-found";
+import Pending from "./pages/pending";
+import UserExam from "./pages/user-exams/exam";
 
 const router = createBrowserRouter([
   {
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
   {
     path: "/not-found",
     element: <NotFound />,
+  },
+  {
+    path: "/pending",
+    element: <Pending />,
   },
   {
     path: "/exams/:id",

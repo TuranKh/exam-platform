@@ -41,9 +41,12 @@ export default function ActionsDropdown({
             </DropdownMenuItem>
           )}
           {onStart && (
-            <DropdownMenuItem className='cursor-pointer' onClick={onStart}>
+            <DropdownMenuItem
+              className='cursor-pointer whitespace-nowrap	'
+              onClick={onStart}
+            >
               <CirclePlay />
-              İmtahana başla
+              Başla
             </DropdownMenuItem>
           )}
           {onView && (

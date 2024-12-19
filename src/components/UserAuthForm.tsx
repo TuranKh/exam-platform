@@ -74,7 +74,7 @@ export function UserAuthForm({
         </div>
       </div>
       <Button onClick={oAuthLogin} variant='outline' type='button'>
-        <Icons.gitHub className='mr-2 h-4 w-4' />
+        <Icons.google className='mr-2 h-4 w-4' />
         Google
       </Button>
     </div>

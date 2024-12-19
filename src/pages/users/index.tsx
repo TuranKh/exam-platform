@@ -33,7 +33,7 @@ export default function UsersComponent() {
     queryFn: () => {
       return UserService.getAllUsersDetails(filters);
     },
-    queryKey: ["all-users-details"],
+    queryKey: ["all-users-details", filters],
   });
 
   const { data: allGroups } = useQuery({
@@ -57,7 +57,7 @@ export default function UsersComponent() {
         accessor: "name",
         align: "left",
         render: (row) => {
-          return `${row.name} ${row.surname} ${row.patronymic}`;
+          return `${row.name} ${row.surname}`;
         },
       },
       {
@@ -141,6 +141,7 @@ export default function UsersComponent() {
   );
 
   const onReset = function () {
+    resetFilters();
     refetch();
   };
 

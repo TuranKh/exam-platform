@@ -20,7 +20,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Mock data
 const examStats = {
   totalExams: 50,
   activeExams: 35,

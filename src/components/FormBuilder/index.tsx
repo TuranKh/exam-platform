@@ -80,12 +80,9 @@ export default function FormBuilder({ form }: { form: FormDetails }) {
         case FormFieldType.Select:
           return (
             <>
-              {JSON.stringify(!!formFieldDetails.value)}
               <Select
                 value={
-                  formFieldDetails.value
-                    ? String(formFieldDetails.value)
-                    : undefined
+                  formFieldDetails.value ? String(formFieldDetails.value) : ""
                 }
                 onValueChange={(value) => {
                   form.onChange({ [formFieldDetails.key]: value });

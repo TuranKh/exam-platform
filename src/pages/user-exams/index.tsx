@@ -1,8 +1,11 @@
 import ActionsDropdown from "@/components/ActionsDropdown";
 import CustomTable, { Column } from "@/components/CustomtTable";
-import usePagination from "@/hooks/usePagination";
+import { FormFieldType, InputDetails } from "@/components/FormBuilder";
+import Search from "@/components/Search";
+import useFilter, { Filter } from "@/hooks/useFilter";
+import usePagination, { initialPage } from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
-import ExamService, { ExamDetails } from "@/service/ExamService";
+import ExamService, { ExamDetails, ExamFilters } from "@/service/ExamService";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate } from "react-router-dom";
@@ -15,18 +18,24 @@ const filterInitialState = {
 
 export default function UserExams() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { data: exams, isLoading } = useQuery({
-    queryKey: ["all-user-exams"],
-    queryFn: ExamService.getUserSpecificExams,
-  });
   const paginationDetails = usePagination();
+  const { filters, resetFilters, setFilters } = useFilter();
 
-  const [filters, setFilters] = useState(filterInitialState);
+  const {
+    data: exams,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["all-user-exams"],
+    queryFn: () => {
+      return ExamService.getUserSpecificExams(filters, paginationDetails);
+    },
+  });
 
-  const handleResetAll = () => {
-    setFilters(filterInitialState);
-  };
+  const { data: examOptions } = useQuery({
+    queryFn: ExamService.getAllForUserSelect,
+    queryKey: ["user-exams-select"],
+  });
 
   const columns = useMemo(() => {
     return [
@@ -35,20 +44,48 @@ export default function UserExams() {
         header: "",
         accessor: "action",
         align: "center",
-        render: (data: ExamDetails) => (
-          <ActionsDropdown
-            onStart={() => {
-              navigate(`${data.id}`);
-            }}
-          />
-        ),
+        render: (data: ExamDetails) => {
+          return (
+            <ActionsDropdown
+              onStart={() => {
+                navigate(`${data.examId}`);
+              }}
+            />
+          );
+        },
       },
     ];
-  }, [queryClient, navigate]);
+  }, [navigate]);
+
+  const onSearch = function (params: Filter<ExamFilters>) {
+    setFilters(params);
+    if (paginationDetails.page === initialPage) {
+      refetch();
+    } else {
+      paginationDetails.setPage(0);
+    }
+  };
+
+  const onReset = function () {
+    resetFilters();
+    refetch();
+  };
 
   return (
     <div className='p-6 space-y-4'>
-      <h1 className='text-2xl font-bold'>İmtahanlar</h1>
+      <h1 className='text-2xl font-bold'>İmtahanlarım</h1>
+
+      <Search<ExamFilters>
+        onSearch={onSearch}
+        onReset={onReset}
+        formDetails={{
+          inputs,
+          options: {
+            isActive: options.isActive,
+            id: examOptions || [],
+          },
+        }}
+      />
 
       <CustomTable
         paginationDetails={paginationDetails}
@@ -59,6 +96,37 @@ export default function UserExams() {
     </div>
   );
 }
+
+const inputs: InputDetails[] = [
+  {
+    key: "id",
+    label: "İmtahan adı",
+    type: FormFieldType.Select,
+  },
+  {
+    key: "createdAt",
+    label: "Tarix seçin",
+    type: FormFieldType.DatePicker,
+  },
+  {
+    key: "isActive",
+    label: "Aktivlik",
+    type: FormFieldType.Select,
+  },
+];
+
+const options = {
+  isActive: [
+    {
+      label: "Aktiv",
+      value: "true",
+    },
+    {
+      label: "Deaktiv",
+      value: "false",
+    },
+  ],
+};
 
 const staticColumns: Column<ExamDetails>[] = [
   {

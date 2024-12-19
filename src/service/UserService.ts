@@ -2,6 +2,7 @@ import { Filter } from "@/hooks/useFilter";
 import RequestHelper from "@/lib/request-helper";
 import { UsedFilters } from "@/pages/users";
 import { supabase } from "@/supabase/init";
+import { GroupDetails } from "./GroupService";
 
 export default class UserService {
   static signUp({ email, password }: UserSignupDetails) {
@@ -68,6 +69,15 @@ export default class UserService {
     return { error };
   }
 
+  static async addUserToPendingList(email: string, fullname: string) {
+    const [name, surname] = fullname.split(" ");
+    const { error } = await supabase
+      .from("users")
+      .insert({ email, name, surname });
+
+    return error;
+  }
+
   static async changeUserGroup(newGroupId: number, userId: number) {
     const response = await supabase
       .from("users")
@@ -93,7 +103,6 @@ export type UserDetails = {
   createdAt: string;
   email: string;
   password: string;
-  groupId: number | null;
   isPending: false;
   isAdmin: false;
   averageScore: number | null;
@@ -101,5 +110,5 @@ export type UserDetails = {
   name: string;
   surname: string;
   patronymic: string;
-  groupName: string;
+  groups: GroupDetails;
 };

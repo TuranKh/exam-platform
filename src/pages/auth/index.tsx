@@ -29,23 +29,6 @@ export default function AuthPage() {
               </p>
             </div>
             <UserAuthForm />
-            <p className='px-8 text-center text-sm text-muted-foreground'>
-              By clicking continue, you agree to our{" "}
-              <a
-                href='/terms'
-                className='underline underline-offset-4 hover:text-primary'
-              >
-                Terms of Service
-              </a>{" "}
-              and{" "}
-              <a
-                href='/privacy'
-                className='underline underline-offset-4 hover:text-primary'
-              >
-                Privacy Policy
-              </a>
-              .
-            </p>
           </div>
         </div>
       </div>

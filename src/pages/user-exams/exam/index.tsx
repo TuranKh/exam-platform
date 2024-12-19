@@ -1,18 +1,23 @@
-import "./Exam.scss";
-
-import { BookOpen, CircleChevronRight, Eraser } from "lucide-react";
-import React, { useEffect, useState } from "react";
-
+import placeholderImage from "@/assets/placeholder.webp";
+import { Countdown } from "@/components/Countdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+} from "@/components/ui/pagination";
+import usePagination from "@/hooks/usePagination";
+import { answerOptions } from "@/pages/exams/exam";
 import ExamService from "@/service/ExamService";
 import StorageService from "@/service/StorageService";
+import { BookOpen, CircleChevronRight, Eraser, Timer } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useQuery } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import placeholderImage from "@/assets/placeholder.webp";
-import UserExamsService from "@/service/UserExamsService";
-import UserService from "@/service/UserService";
+import "./Exam.scss";
 
 interface Question {
   id: string;
@@ -22,6 +27,8 @@ interface Question {
 }
 
 export default function Exam() {
+  const [showTimer, setShowTimer] = useState(true);
+  const paginationDetails = usePagination(1);
   const { id } = useParams();
   const navigate = useNavigate();
   const [examDetails, setExamDetails] = useState<{
@@ -32,7 +39,8 @@ export default function Exam() {
   const { data: existingExamDetails, isLoading } = useQuery({
     queryKey: ["get-exam", id],
     queryFn: async () => {
-      return ExamService.getExam(Number(id), false);
+      const details = ExamService.getExam(Number(id), false);
+      return details;
     },
   });
 
@@ -44,8 +52,8 @@ export default function Exam() {
           name: existingExamDetails.name,
         });
         setQuestions(() => {
-          console.log({ existingExamDetails });
           const existingQuestions = JSON.parse(existingExamDetails.questions);
+          paginationDetails.setTotalRowsNumber(existingQuestions.length);
           return existingQuestions.map(
             (question: { id: string; answerId: number; filePath: string }) => {
               return {
@@ -57,11 +65,11 @@ export default function Exam() {
           );
         });
       } else if (!isLoading) {
-        setExamDetails({});
-        setQuestions([]);
+        toast.error("İmtahan tapılmadı!");
+        navigate("/available-exams");
       }
     })();
-  }, [existingExamDetails]);
+  }, [existingExamDetails, isLoading]);
 
   function updateCorrectAnswer(id: string, value: string) {
     setQuestions((prev) => {
@@ -80,8 +88,6 @@ export default function Exam() {
   }
 
   async function submitAnswers() {
-    const randomIdentifier = crypto.randomUUID();
-
     const answers: Record<string, string | null> = {};
 
     const finalExamDetails = {
@@ -102,58 +108,131 @@ export default function Exam() {
 
   const resetAnswers = function () {};
 
+  const activeQuestion = useMemo(() => {
+    return questions[paginationDetails.page];
+  }, [paginationDetails.page, questions]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(
+      paginationDetails.totalRowsNumber / paginationDetails.perPage,
+    );
+  }, [paginationDetails.totalRowsNumber, paginationDetails.perPage]);
+
+  const pageNumbers = useMemo(() => {
+    const pages: (number | "ellipsis")[] = [];
+
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  }, [totalPages]);
+
+  const onKeyPress = function (event: React.KeyboardEvent<HTMLInputElement>) {
+    switch (event.key) {
+      case "ArrowRight":
+        paginationDetails.setPage((current) => current + 1);
+        return;
+      case "ArrowLeft":
+        paginationDetails.setPage((current) => current - 1);
+        return;
+    }
+  };
+
   return (
-    <Card className='exam-wrapper'>
-      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-        <CardTitle className='text-lg font-medium mb-2'>
-          {examDetails.name}
-        </CardTitle>
-        <BookOpen className='h-4 w-4 text-muted-foreground' />
-      </CardHeader>
-      <CardContent>
-        <div className='exam-content'>
-          <div>
-            <form
-              onSubmit={handleSubmit}
-              onDragOver={(event) => event.preventDefault()}
-              className='space-y-6'
-            >
-              <div className='space-y-4'>
-                {questions.length > 0 && (
-                  <div className='questions-wrapper'>
-                    <div className='questions'>
-                      {questions.map((question, index) => (
-                        <Question
-                          key={question.id}
-                          index={index}
-                          question={question}
-                          updateCorrectAnswer={updateCorrectAnswer}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className='actions'>
-                <Button
-                  type='button'
-                  onClick={resetAnswers}
-                  variant={"destructive"}
-                  disabled={questions.length === 0}
-                >
-                  Cavabları sıfırla
-                  <Eraser />
-                </Button>
-                <Button type='submit'>
-                  Təsdiqlə
-                  <CircleChevronRight />
-                </Button>
-              </div>
-            </form>
+    <>
+      {examDetails?.duration && (
+        <div className='absolute right-10 float-right flex flex-col gap-2 items-end'>
+          <Timer
+            className='cursor-pointer'
+            onClick={() => {
+              setShowTimer((current) => {
+                return !current;
+              });
+            }}
+          />
+          <div className={`${showTimer ? "block" : "hidden"}`}>
+            <Countdown initialTime={examDetails.duration * 60} />
           </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+      <Card className='user-exam-wrapper'>
+        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+          <CardTitle className='text-lg font-medium mb-2'>
+            {examDetails.name}
+          </CardTitle>
+          <BookOpen className='h-4 w-4 text-muted-foreground' />
+        </CardHeader>
+        <CardContent>
+          <div className='exam-content'>
+            <div>
+              <form
+                onKeyDown={onKeyPress}
+                onSubmit={handleSubmit}
+                onDragOver={(event) => event.preventDefault()}
+                className='space-y-6'
+              >
+                <div className='space-y-4'>
+                  {questions.length > 0 && (
+                    <div className='questions-wrapper'>
+                      <div className='questions'>
+                        <Question
+                          key={activeQuestion.id}
+                          index={paginationDetails.page}
+                          question={activeQuestion}
+                          updateCorrectAnswer={updateCorrectAnswer}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <Pagination>
+                  <PaginationContent>
+                    {pageNumbers.map((page: number) => {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            href='#'
+                            className={
+                              questions?.[page - 1]?.correctAnswer
+                                ? "answered"
+                                : "not-answered"
+                            }
+                            isActive={page - 1 === paginationDetails.page}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              paginationDetails.setPage((page - 1) as number);
+                            }}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                  </PaginationContent>
+                </Pagination>
+
+                <div className='actions'>
+                  <Button
+                    type='button'
+                    onClick={resetAnswers}
+                    variant={"destructive"}
+                    disabled={questions.length === 0}
+                  >
+                    Cavabları sıfırla
+                    <Eraser />
+                  </Button>
+                  <Button type='submit'>
+                    Təsdiqlə
+                    <CircleChevronRight />
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </>
   );
 }
 
@@ -194,7 +273,12 @@ const Question = React.memo(function Question({
           className='question-image'
         />
       ) : (
-        <img src={imageUrl!} alt='Question' className='question-image' />
+        <img
+          loading='lazy'
+          src={imageUrl!}
+          alt='Question'
+          className='question-image'
+        />
       )}
       <div>
         <select
@@ -213,5 +297,3 @@ const Question = React.memo(function Question({
     </div>
   );
 });
-
-const answerOptions = ["A", "B", "C", "D", "E"];

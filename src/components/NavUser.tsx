@@ -26,6 +26,7 @@ import { useQuery } from "react-query";
 import UserService from "@/service/UserService";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 
 export default function NavUser() {
   const { isMobile } = useSidebar();
@@ -45,6 +46,21 @@ export default function NavUser() {
     navigate("/auth");
   };
 
+  const fullname = useMemo(() => {
+    if (!userDetails) {
+      return;
+    }
+    return `${userDetails.name} ${userDetails.surname}`;
+  }, [userDetails]);
+
+  const initials = useMemo(() => {
+    console.log(userDetails);
+    if (!userDetails) {
+      return;
+    }
+    return `${userDetails.name[0].toUpperCase()}${userDetails.surname[0].toUpperCase()}`;
+  }, [userDetails]);
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -56,10 +72,12 @@ export default function NavUser() {
             >
               <Avatar className='h-8 w-8 rounded-lg'>
                 <AvatarImage src={"no-image"} alt={"Temporary"} />
-                <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
+                <AvatarFallback className='rounded-lg'>
+                  {initials}
+                </AvatarFallback>
               </Avatar>
               <div className='grid flex-1 text-left text-sm leading-tight'>
-                <span className='truncate font-semibold'>Turan Khidilov</span>
+                <span className='truncate font-semibold'>{fullname}</span>
                 <span className='truncate text-xs'>{userDetails.email}</span>
               </div>
               <ChevronsUpDown className='ml-auto size-4' />
@@ -74,11 +92,13 @@ export default function NavUser() {
             <DropdownMenuLabel className='p-0 font-normal'>
               <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
                 <Avatar className='h-8 w-8 rounded-lg'>
-                  <AvatarImage src={"no-avatar"} alt='Turan Khidilov' />
-                  <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
+                  <AvatarImage src={"no-avatar"} alt={fullname} />
+                  <AvatarFallback className='rounded-lg'>
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
-                  <span className='truncate font-semibold'>Turan Khidilov</span>
+                  <span className='truncate font-semibold'>{fullname}</span>
                   <span className='truncate text-xs'>{userDetails.email}</span>
                 </div>
               </div>
