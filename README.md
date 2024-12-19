@@ -1,50 +1,123 @@
-# React + TypeScript + Vite
+# Application README
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Project Overview
 
-Currently, two official plugins are available:
+This project is a modern web application built with **React**, **Vite**, and **TypeScript**, leveraging **Supabase** for backend services. It is designed for optimal performance and maintainability.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- **React 18**
+- **Vite**
+- **TypeScript**
+- **Supabase**
+- **Node.js v20**
+- **Zustand**
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Requirements
 
-- Configure the top-level `parserOptions` property like this:
+To run this project, you need to have the following installed:
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- **Node.js v20**
+- **npm** (Node Package Manager)
+
+## Setup Instructions
+
+1. **Clone the Repository**
+
+   ```bash
+   git clone https://github.com/your-username/your-repo-name.git
+   cd your-repo-name
+   ```
+
+2. **Install Dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Setup Environment Variables**
+
+   Create a `.env` file in the root directory and add the following variables:
+
+   ```env
+   VITE_SUPABASE_URL=your-supabase-url
+   VITE_SUPABASE_KEY=your-supabase-anon-key
+   ```
+
+   Replace `your-supabase-url` and `your-supabase-anon-key` with your actual Supabase credentials.
+
+4. **Start the Development Server**
+
+   ```bash
+   npm run dev
+   ```
+
+   The application will be available at `http://localhost:5173` by default.
+
+5. **Build for Production**
+
+   To create an optimized production build:
+
+   ```bash
+   npm run build
+   ```
+
+   The build output will be located in the `dist` folder.
+
+## Folder Structure
+
+```
+project-root
+├── public
+│   └── favicon.svg
+├── src
+│   ├── assets        # Static assets like images
+│   ├── components    # React components
+│   ├── config        # Configuration files (e.g., HttpClient, Interceptor, QueryConfig)
+│   ├── hooks         # Custom React hooks
+│   ├── lib           # Utility functions or libraries
+│   ├── pages         # Application pages
+│   ├── service       # API services and Supabase integration
+│   ├── store         # Zustand state management
+│   ├── supabase      # Supabase client setup
+│   ├── App.css       # Global styles
+│   ├── App.tsx       # Main application file
+│   ├── index.css     # Index styles
+│   ├── main.tsx      # Entry point
+│   └── vite-env.d.ts # Vite environment types
+├── .gitignore        # Git ignore file
+├── .prettierrc       # Prettier configuration
+├── components.json   # Component metadata
+├── env.ts            # Environment configuration
+├── eslint.config.js  # ESLint configuration
+├── index.html        # Main HTML file
+├── package.json      # Project metadata and dependencies
+├── package-lock.json # Dependency lock file
+├── postcss.config.js # PostCSS configuration
+├── README.md         # Project documentation
+├── tailwind.config.js# Tailwind CSS configuration
+├── tsconfig.app.json # TypeScript configuration for app
+├── tsconfig.json     # TypeScript base configuration
+├── tsconfig.node.json# TypeScript configuration for Node
+└── vite.config.ts    # Vite configuration
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Technology Stack
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+- **Frontend**: React 18, TypeScript
+- **Backend**: Supabase (PostgreSQL, Authentication, and Storage)
+- **State Management**: Zustand
+- **Build Tool**: Vite
+- **Runtime**: Node.js v20
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+## Contributing
+
+Feel free to fork the repository and submit pull requests. Contributions are welcome!
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+## Contact
+
+For any questions or feedback, please contact [your-email@example.com].
