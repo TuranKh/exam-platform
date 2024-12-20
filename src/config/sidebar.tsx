@@ -44,7 +44,7 @@ export const sidebarRoutes = [
     url: "/exams",
     icon: BookCheck,
     component: <Exams />,
-    allowedRole: UserRole.Student,
+    allowedRole: UserRole.Admin,
   },
   {
     title: "İstifadəçilər",

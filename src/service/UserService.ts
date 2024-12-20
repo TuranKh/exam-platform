@@ -12,7 +12,7 @@ export default class UserService {
     });
   }
 
-  static async getUser() {
+  static async getUser(): Promise<void | Omit<UserDetails, "groups">> {
     const userDetails = await supabase.auth.getUser();
     if (userDetails.data.user?.email) {
       const localUserDetails = await UserService.getLocalUser(
