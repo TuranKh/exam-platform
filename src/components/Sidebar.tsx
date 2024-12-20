@@ -12,9 +12,19 @@ import { sidebarRoutes } from "@/config/sidebar";
 import { Link, useLocation } from "react-router-dom";
 import NavUser from "./NavUser";
 import { DropdownMenuSeparator } from "./ui/dropdown-menu";
+import UserService from "@/service/UserService";
+import { useQuery } from "react-query";
+import { useMemo } from "react";
 
 export default function AppSidebar() {
   const location = useLocation();
+
+  const { data: userDetails, refetch } = useQuery({
+    queryKey: ["get-user"],
+    queryFn: UserService.getUser,
+    staleTime: Infinity,
+    cacheTime: Infinity,
+  });
 
   return (
     <Sidebar>

@@ -2,11 +2,14 @@ import UserService from "@/service/UserService";
 import { useQuery } from "react-query";
 import { Navigate } from "react-router-dom";
 import Loading from "./Loading";
+import { UserRole } from "@/config/sidebar";
 
 export default function ProtectedRouter({
   children,
+  userRole,
 }: {
   children: JSX.Element;
+  userRole?: UserRole;
 }) {
   const { data: userDetails, isLoading } = useQuery({
     queryKey: ["get-user"],
@@ -20,9 +23,20 @@ export default function ProtectedRouter({
   }
 
   const isAuthorized = userDetails?.email;
-
   if (isAuthorized) {
-    return children;
+    if (!userRole) {
+      return children;
+    }
+
+    if (userRole === UserRole.Admin && userDetails.isAdmin) {
+      return children;
+    }
+
+    if (userRole === UserRole.Student && !userDetails.isAdmin) {
+      return children;
+    }
+
+    return <Navigate to='/pending' />;
   }
 
   return <Navigate to='/pending' />;

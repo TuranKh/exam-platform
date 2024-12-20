@@ -4,7 +4,7 @@ import "./App.css";
 import Layout from "./components/Layout";
 import Modals from "./components/Modals";
 import ProtectedRouter from "./components/ProtectedRouter";
-import { sidebarRoutes } from "./config/sidebar";
+import { sidebarRoutes, UserRole } from "./config/sidebar";
 import Dashboard from "./pages";
 import AuthPage from "./pages/auth";
 import Exam from "./pages/exams/exam";
@@ -29,7 +29,7 @@ const router = createBrowserRouter([
     return {
       path: sidebarDetails.url,
       element: (
-        <ProtectedRouter>
+        <ProtectedRouter userRole={sidebarDetails.allowedRole}>
           <Layout>{sidebarDetails.component}</Layout>
         </ProtectedRouter>
       ),
@@ -46,7 +46,7 @@ const router = createBrowserRouter([
   {
     path: "/exams/:id",
     element: (
-      <ProtectedRouter>
+      <ProtectedRouter userRole={UserRole.Admin}>
         <Layout>
           <Exam />
         </Layout>
@@ -56,7 +56,7 @@ const router = createBrowserRouter([
   {
     path: "/available-exams/:id",
     element: (
-      <ProtectedRouter>
+      <ProtectedRouter userRole={UserRole.Student}>
         <Layout>
           <UserExam />
         </Layout>
