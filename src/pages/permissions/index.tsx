@@ -72,7 +72,7 @@ export default function Permissions() {
         header: "İcazə",
         accessor: "hasAccess",
         align: "center",
-        render: (data: UserExamDetails) => (
+        Render: (data: UserExamDetails) => (
           <Switch
             checked={data.hasAccess}
             onClick={() => handleAccessToggle(data.id, !data.hasAccess)}
@@ -162,13 +162,13 @@ const staticColumns: Column<UserExamDetails>[] = [
     accessor: "id",
     align: "center",
     className: "row-number",
-    render: (_row, _rowIndex, relativeRowNumber) => relativeRowNumber,
+    Render: (_row, _rowIndex, relativeRowNumber) => relativeRowNumber,
   },
   {
     header: "İmtahan adı",
     accessor: "examName",
     align: "left",
-    render: (data: UserExamDetails) => {
+    Render: (data: UserExamDetails) => {
       console.log({ data });
       return data.exams.name;
     },
@@ -177,27 +177,27 @@ const staticColumns: Column<UserExamDetails>[] = [
     header: "İştirakçının adı",
     accessor: "participantName",
     align: "left",
-    render: (data: UserExamDetails) =>
+    Render: (data: UserExamDetails) =>
       `${data?.users?.name} ${data?.users?.surname}`,
   },
   {
     header: "Qrup",
     accessor: "groupName",
     align: "left",
-    render: (data: UserExamDetails) =>
+    Render: (data: UserExamDetails) =>
       data.users?.groups?.name || "Qrupu yoxdur",
   },
   {
     header: "Nəticə",
     accessor: "result",
     align: "center",
-    render: (data: UserExamDetails) =>
+    Render: (data: UserExamDetails) =>
       data.isFinished && data.score !== null ? `${data.score}%` : "-",
   },
   {
     header: "Cəhd sayı",
     accessor: "attemptCount",
     align: "center",
-    render: (data: UserExamDetails) => data.attemptCount,
+    Render: (data: UserExamDetails) => data.attemptCount,
   },
 ];

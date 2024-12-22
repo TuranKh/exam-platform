@@ -44,7 +44,7 @@ export default function UserExams() {
         header: "",
         accessor: "action",
         align: "center",
-        render: (data: ExamDetails) => {
+        Render: (data: ExamDetails) => {
           return (
             <ActionsDropdown
               onStart={() => {
@@ -134,7 +134,7 @@ const staticColumns: Column<ExamDetails>[] = [
     accessor: "id",
     align: "center",
     className: "row-number",
-    render: (_row, _rowIndex, relativeRowNumber) => {
+    Render: (_row, _rowIndex, relativeRowNumber) => {
       return relativeRowNumber;
     },
   },
@@ -147,14 +147,14 @@ const staticColumns: Column<ExamDetails>[] = [
     header: "Yaradılma tarixi",
     accessor: "createdAt",
     align: "center",
-    render: (data: ExamDetails) =>
+    Render: (data: ExamDetails) =>
       new Date(data.createdAt).toLocaleDateString(),
   },
   {
     header: "Müddət",
     accessor: "duration",
     align: "center",
-    render: (data: ExamDetails) => {
+    Render: (data: ExamDetails) => {
       return DateUtils.minToHour(data.duration);
     },
   },

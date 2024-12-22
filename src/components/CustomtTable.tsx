@@ -66,8 +66,8 @@ export default function CustomTable<T>({
                     className={column.className}
                     style={{ textAlign: column.align || "left" }}
                   >
-                    {column.render
-                      ? column.render(
+                    {column.Render
+                      ? column.Render(
                           row,
                           rowIndex,
                           relativeRowNumber + rowIndex,
@@ -108,7 +108,7 @@ export type Column<T> =
       className?: string;
     } & (
       | {
-          render: (
+          Render: (
             data: T,
             rowIndex: number,
             relativeRowNumber: number,
@@ -117,6 +117,6 @@ export type Column<T> =
         }
       | {
           accessor: keyof T;
-          render?: never;
+          Render?: never;
         }
     );

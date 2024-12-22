@@ -1,3 +1,4 @@
+import ActionsDropdown from "@/components/ActionsDropdown";
 import CustomTable, { Column } from "@/components/CustomtTable";
 import { FormFieldType, InputDetails } from "@/components/FormBuilder";
 import Search from "@/components/Search";
@@ -18,7 +19,7 @@ import GroupService, { GroupDetails } from "@/service/GroupService";
 import UserService, { UserDetails } from "@/service/UserService";
 import { useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 
 export type UsedFilters = Pick<
   UserDetails,
@@ -48,7 +49,7 @@ export default function UsersComponent() {
         accessor: "id",
         align: "center",
         className: "row-number",
-        render: (_row, _rowIndex, relativeRowNumber) => {
+        Render: (_row, _rowIndex, relativeRowNumber) => {
           return relativeRowNumber;
         },
       },
@@ -56,7 +57,7 @@ export default function UsersComponent() {
         header: "Tam ad",
         accessor: "name",
         align: "left",
-        render: (row) => {
+        Render: (row) => {
           return `${row.name} ${row.surname}`;
         },
       },
@@ -69,7 +70,7 @@ export default function UsersComponent() {
         header: "Qrup",
         accessor: "groupName",
         align: "left",
-        render: (data) => {
+        Render: (data) => {
           return (
             <Select
               value={data.groupId ? String(data.groupId) : "null"}
@@ -107,14 +108,14 @@ export default function UsersComponent() {
         header: "Yaradılma tarixi",
         accessor: "createdAt",
         align: "center",
-        render: (data) =>
+        Render: (data) =>
           DateUtils.getUserFriendlyDate(new Date(data.createdAt)),
       },
       {
         header: "Gözləmədə",
         accessor: "isPending",
         align: "center",
-        render: (data) => (
+        Render: (data) => (
           <Switch
             checked={data.isPending}
             onCheckedChange={(checked) => handleStatusToggle(data.id, checked)}
@@ -196,7 +197,7 @@ function Groups() {
     queryFn: () => {
       return GroupService.getAll(filters);
     },
-    queryKey: ["all-groups"],
+    queryKey: ["all-groups", filters],
   });
 
   const { data: allSelectGroups } = useQuery({
@@ -245,11 +246,45 @@ const groupColumns: Column<GroupDetails>[] = [
     align: "left",
   },
   {
+    header: "Tələbə sayı",
+    accessor: "users",
+    align: "center",
+    Render: (data) => {
+      return data.users[0].count;
+    },
+  },
+  {
     header: "Yaradılma tarixi",
     accessor: "createdAt",
     align: "left",
-    render: (data) => {
+    Render: (data) => {
       return DateUtils.getUserFriendlyDate(new Date(data.createdAt));
+    },
+  },
+  {
+    header: "Yaradılma tarixi",
+    accessor: "createdAt",
+    align: "left",
+    Render: (data) => {
+      const queryClient = useQueryClient();
+      return (
+        <ActionsDropdown
+          onDelete={async () => {
+            const error = await GroupService.delete(data.id);
+
+            if (error) {
+              return;
+            }
+            toast.success("Qrup uğurla silindi");
+            queryClient.invalidateQueries({
+              queryKey: ["all-groups"],
+            });
+          }}
+          onEdit={() => {
+            // navigate(`/exams/${data.id}`);
+          }}
+        />
+      );
     },
   },
 ];

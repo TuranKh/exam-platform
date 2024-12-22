@@ -13,7 +13,7 @@ const queryClient = new QueryClient({
   },
 });
 
-createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById("root")!).Render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <App />

@@ -63,7 +63,7 @@ export default function Exams() {
         header: "Status",
         accessor: "isActive",
         align: "center",
-        render: (data: ExamDetails) => (
+        Render: (data: ExamDetails) => (
           <Switch
             checked={data.isActive}
             onClick={() => handleStatusToggle(data.id, !data.isActive)}
@@ -75,7 +75,7 @@ export default function Exams() {
         header: "",
         accessor: "action",
         align: "center",
-        render: (data: ExamDetails) => (
+        Render: (data: ExamDetails) => (
           <ActionsDropdown
             onDelete={async () => {
               const error = await ExamService.deleteExam(data.id);
@@ -175,7 +175,7 @@ const staticColumns = [
     accessor: "id",
     align: "center",
     className: "row-number",
-    render: (_row, _rowIndex, relativeRowNumber) => {
+    Render: (_row, _rowIndex, relativeRowNumber) => {
       return relativeRowNumber;
     },
   },
@@ -188,14 +188,14 @@ const staticColumns = [
     header: "Yaradılma tarixi",
     accessor: "createdAt",
     align: "center",
-    render: (data: ExamDetails) =>
+    Render: (data: ExamDetails) =>
       DateUtils.getUserFriendlyDate(new Date(data.createdAt)),
   },
   {
     header: "Müddət",
     accessor: "duration",
     align: "center",
-    render: (data: ExamDetails) => {
+    Render: (data: ExamDetails) => {
       return DateUtils.minToHour(data.duration);
     },
   },
