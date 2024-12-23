@@ -2,7 +2,6 @@ import { Filter } from "@/hooks/useFilter";
 import RequestHelper from "@/lib/request-helper";
 import { UsedFilters } from "@/pages/users";
 import { supabase } from "@/supabase/init";
-import { GroupDetails } from "./GroupService";
 
 export default class UserService {
   static signUp({ email, password }: UserSignupDetails) {
@@ -52,11 +51,26 @@ export default class UserService {
     return data;
   }
 
-  static async getAllUsersDetails(filters: Filter<UsedFilters>) {
+  static async getAllUsersDetails(
+    filters: Partial<Filter<UsedFilters>>,
+  ): Promise<UserDetails[]> {
+    console.log({ filters });
     const initialQuery = supabase.from("users-details").select("*");
     const finalQuery = RequestHelper.applyFilters(initialQuery, filters);
 
     return (await finalQuery).data;
+  }
+
+  static async searchByEmailOrName(query: string): Promise<UserDetails[]> {
+    const response = supabase
+      .from("users-details")
+      .select("*")
+      .or(
+        `email.ilike.%${query}%,name.ilike.%${query}%,surname.ilike.%${query}%`,
+      );
+    // .neq("groupId", String(groupId));
+
+    return (await response).data || [];
   }
 
   static async changeUserAccess(rowId: number, isPending: boolean) {
@@ -78,7 +92,7 @@ export default class UserService {
     return error;
   }
 
-  static async changeUserGroup(newGroupId: number, userId: number) {
+  static async changeUserGroup(newGroupId: number | null, userId: number) {
     const response = await supabase
       .from("users")
       .update({ groupId: newGroupId })
@@ -110,5 +124,6 @@ export type UserDetails = {
   name: string;
   surname: string;
   patronymic: string;
-  groups: GroupDetails;
+  groupId: number;
+  groupName: string;
 };

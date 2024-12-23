@@ -1,6 +1,7 @@
 import ActionsDropdown from "@/components/ActionsDropdown";
 import CustomTable, { Column } from "@/components/CustomtTable";
 import { FormFieldType, InputDetails } from "@/components/FormBuilder";
+import GroupModal from "@/components/GroupModal";
 import Search from "@/components/Search";
 import {
   Select,
@@ -17,14 +18,15 @@ import usePagination from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
 import GroupService, { GroupDetails } from "@/service/GroupService";
 import UserService, { UserDetails } from "@/service/UserService";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
+import GroupActionsCell from "./GroupActionCell";
 
 export type UsedFilters = Pick<
   UserDetails,
-  "name" | "surname" | "patronymic" | "email" | "groupName" | "isPending"
->;
+  "name" | "surname" | "patronymic" | "email" | "isPending"
+> & { groupName: string };
 
 export default function UsersComponent() {
   const paginationDetails = usePagination();
@@ -262,30 +264,10 @@ const groupColumns: Column<GroupDetails>[] = [
     },
   },
   {
-    header: "Yaradılma tarixi",
-    accessor: "createdAt",
-    align: "left",
-    Render: (data) => {
-      const queryClient = useQueryClient();
-      return (
-        <ActionsDropdown
-          onDelete={async () => {
-            const error = await GroupService.delete(data.id);
-
-            if (error) {
-              return;
-            }
-            toast.success("Qrup uğurla silindi");
-            queryClient.invalidateQueries({
-              queryKey: ["all-groups"],
-            });
-          }}
-          onEdit={() => {
-            // navigate(`/exams/${data.id}`);
-          }}
-        />
-      );
-    },
+    header: "",
+    accessor: "actions",
+    align: "right",
+    Render: (data) => <GroupActionsCell data={data} />,
   },
 ];
 
@@ -328,6 +310,11 @@ const inputs: InputDetails[] = [
   {
     key: "patronymic",
     label: "Ata adı",
+    type: FormFieldType.Text,
+  },
+  {
+    key: "email",
+    label: "Email ünvanı",
     type: FormFieldType.Text,
   },
   {

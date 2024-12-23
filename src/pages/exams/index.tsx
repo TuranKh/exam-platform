@@ -52,6 +52,7 @@ export default function Exams() {
       queryClient.invalidateQueries({
         queryKey: ["all-exams"],
       });
+      // all-users-details
     },
     [queryClient],
   );

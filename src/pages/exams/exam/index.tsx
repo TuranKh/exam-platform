@@ -135,6 +135,15 @@ export default function Exam() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    const unansweredQuestion = questions.find((question) => {
+      return !question.correctAnswer;
+    });
+    if (unansweredQuestion) {
+      toast.error("Cavabsız suallar mövcuddur");
+      navigate(`#${unansweredQuestion.id}`);
+      return;
+    }
+
     if (isEditMode) {
       editExam();
       return;
@@ -435,6 +444,7 @@ const SortableItem = React.memo(function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
+      id={question.id}
       className='relative border rounded-lg p-4 flex items-center'
     >
       <div className='drag-handle mr-2 absolute top-2 left-2 p-1 rounded-full'>
