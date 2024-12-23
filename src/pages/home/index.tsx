@@ -19,58 +19,46 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-const examStats = {
-  totalExams: 50,
-  activeExams: 35,
-  totalUsers: 1200,
-  averageDuration: 45,
-};
-
-const userMarkDistribution = [
-  { mark: "0-20", count: 50 },
-  { mark: "21-40", count: 150 },
-  { mark: "41-60", count: 300 },
-  { mark: "61-80", count: 400 },
-  { mark: "81-100", count: 300 },
-];
-
-const averageExamDuration = [
-  { exam: "Math", duration: 55 },
-  { exam: "Science", duration: 50 },
-  { exam: "History", duration: 40 },
-  { exam: "Literature", duration: 45 },
-  { exam: "Programming", duration: 60 },
-];
-
-const recentActivity = [
-  {
-    user: "Alice Smith",
-    action: "Riyaziyyat İmtahanını Tamamladı",
-    score: 85,
-    time: "2 saat əvvəl",
-  },
-  {
-    user: "Bob Johnson",
-    action: "Elm İmtahanına Başladı",
-    score: null,
-    time: "3 saat əvvəl",
-  },
-  {
-    user: "Charlie Brown",
-    action: "Tarix İmtahanını Tamamladı",
-    score: 72,
-    time: "5 saat əvvəl",
-  },
-  {
-    user: "Diana Prince",
-    action: "Ədəbiyyat İmtahanını Tamamladı",
-    score: 95,
-    time: "6 saat əvvəl",
-  },
-];
+import { useQuery } from "react-query";
+import StatisticsService from "@/service/StatisticsService";
 
 export default function Home() {
+  const { data: statisticsData } = useQuery({
+    queryKey: ["statistics"],
+    queryFn: StatisticsService.getAll,
+  });
+
+  if (!statisticsData || statisticsData.length === 0) {
+    return <div>No data available.</div>;
+  }
+
+  const statistics = statisticsData[0];
+
+  const {
+    totalExams,
+    activeExams,
+    totalUsers,
+    averageExamDuration,
+    userMarkDistribution,
+    averageExamDurationByExam,
+    recentActivity,
+    examPopularity,
+  } = statistics;
+
+  // If userMarkDistribution is null, we can handle it by providing an empty array or showing a message.
+  const markDistributionData = userMarkDistribution || [];
+  // Similarly for averageExamDurationByExam and recentActivity
+  const averageExamDurations = averageExamDurationByExam || [];
+  const activityData = recentActivity || [];
+
+  // Extract exam popularity info
+  const {
+    mostPopularExam,
+    leastPopularExam,
+    mostPopularAttempts,
+    leastPopularAttempts,
+  } = examPopularity || {};
+
   return (
     <div className='flex-1 space-y-4 p-8 pt-6'>
       <div className='flex items-center justify-between space-y-2'>
@@ -79,8 +67,6 @@ export default function Home() {
       <Tabs defaultValue='overview' className='space-y-4'>
         <TabsList>
           <TabsTrigger value='overview'>Ümumi baxış</TabsTrigger>
-          <TabsTrigger value='analytics'>Analitika</TabsTrigger>
-          <TabsTrigger value='reports'>Hesabatlar</TabsTrigger>
         </TabsList>
         <TabsContent value='overview' className='space-y-4'>
           <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
@@ -92,9 +78,9 @@ export default function Home() {
                 <BookOpen className='h-4 w-4 text-muted-foreground' />
               </CardHeader>
               <CardContent>
-                <div className='text-2xl font-bold'>{examStats.totalExams}</div>
+                <div className='text-2xl font-bold'>{totalExams}</div>
                 <p className='text-xs text-muted-foreground'>
-                  {examStats.activeExams} hazırda aktivdir
+                  {activeExams} hazırda aktivdir
                 </p>
               </CardContent>
             </Card>
@@ -107,14 +93,13 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <div className='text-2xl font-bold'>
-                  {(
-                    (examStats.activeExams / examStats.totalExams) *
-                    100
-                  ).toFixed(1)}
+                  {totalExams > 0
+                    ? ((activeExams / totalExams) * 100).toFixed(1)
+                    : 0}
                   %
                 </div>
                 <p className='text-xs text-muted-foreground'>
-                  {examStats.activeExams} {examStats.totalExams} imtahandan
+                  {activeExams}/{totalExams}
                 </p>
               </CardContent>
             </Card>
@@ -126,7 +111,7 @@ export default function Home() {
                 <Users className='h-4 w-4 text-muted-foreground' />
               </CardHeader>
               <CardContent>
-                <div className='text-2xl font-bold'>{examStats.totalUsers}</div>
+                <div className='text-2xl font-bold'>{totalUsers}</div>
                 <p className='text-xs text-muted-foreground'>
                   Keçən aydan +180
                 </p>
@@ -141,7 +126,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <div className='text-2xl font-bold'>
-                  {examStats.averageDuration} dəq
+                  {averageExamDuration || 0} dəq
                 </div>
                 <p className='text-xs text-muted-foreground'>
                   Keçən aydan -2 dəq
@@ -156,20 +141,26 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <div className='h-[350px]'>
-                  <ResponsiveContainer width='100%' height='100%'>
-                    <BarChart data={userMarkDistribution}>
-                      <CartesianGrid strokeDasharray='3 3' />
-                      <XAxis dataKey='mark' />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar
-                        dataKey='count'
-                        fill='hsl(var(--primary))'
-                        name='Şagird Sayı'
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {markDistributionData.length > 0 ? (
+                    <ResponsiveContainer width='100%' height='100%'>
+                      <BarChart data={markDistributionData}>
+                        <CartesianGrid strokeDasharray='3 3' />
+                        <XAxis dataKey='markRange' />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar
+                          dataKey='count'
+                          fill='hsl(var(--primary))'
+                          name='Şagird Sayı'
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className='text-sm text-muted-foreground'>
+                      Heç bir qiymət paylanması tapılmadı.
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -182,21 +173,27 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <div className='h-[350px]'>
-                  <ResponsiveContainer width='100%' height='100%'>
-                    <LineChart data={averageExamDuration}>
-                      <CartesianGrid strokeDasharray='3 3' />
-                      <XAxis dataKey='exam' />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line
-                        type='monotone'
-                        dataKey='duration'
-                        stroke='hsl(var(--primary))'
-                        name='Müddət (dəqiqələrlə)'
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {averageExamDurations.length > 0 ? (
+                    <ResponsiveContainer width='100%' height='100%'>
+                      <LineChart data={averageExamDurations}>
+                        <CartesianGrid strokeDasharray='3 3' />
+                        <XAxis dataKey='exam' />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type='monotone'
+                          dataKey='duration'
+                          stroke='hsl(var(--primary))'
+                          name='Müddət (dəqiqələrlə)'
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className='text-sm text-muted-foreground'>
+                      Orta imtahan müddəti ilə bağlı məlumat yoxdur.
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -211,23 +208,29 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <div className='space-y-8'>
-                  {recentActivity.map((activity, index) => (
-                    <div key={index} className='flex items-center'>
-                      <div className='space-y-1'>
-                        <p className='text-sm font-medium leading-none'>
-                          {activity.user}
-                        </p>
-                        <p className='text-sm text-muted-foreground'>
-                          {activity.action}
-                        </p>
+                  {activityData.length > 0 ? (
+                    activityData.map((activity, index) => (
+                      <div key={index} className='flex items-center'>
+                        <div className='space-y-1'>
+                          <p className='text-sm font-medium leading-none'>
+                            {activity.user}
+                          </p>
+                          <p className='text-sm text-muted-foreground'>
+                            {activity.action}
+                          </p>
+                        </div>
+                        <div className='ml-auto font-medium'>
+                          {activity.score !== null
+                            ? `Qiymət: ${activity.score}`
+                            : "Davam edir"}
+                        </div>
                       </div>
-                      <div className='ml-auto font-medium'>
-                        {activity.score !== null
-                          ? `Qiymət: ${activity.score}`
-                          : "Davam edir"}
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className='text-sm text-muted-foreground'>
+                      Son fəaliyyət yoxdur.
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -239,26 +242,32 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className='space-y-8'>
-                  <div>
-                    <div className='text-sm font-medium'>
-                      Ən Çox Daxil Olunan
+                {examPopularity && (
+                  <div className='space-y-8'>
+                    <div>
+                      <div className='text-sm font-medium'>
+                        Ən Çox Daxil Olunan
+                      </div>
+                      <div className='text-2xl font-bold'>
+                        {mostPopularExam}
+                      </div>
+                      <div className='text-sm text-muted-foreground'>
+                        Bu həftə {mostPopularAttempts} cəhd
+                      </div>
                     </div>
-                    <div className='text-2xl font-bold'>Riyaziyyat</div>
-                    <div className='text-sm text-muted-foreground'>
-                      Bu həftə 250 cəhd
+                    <div>
+                      <div className='text-sm font-medium'>
+                        Ən Az Daxil Olunan
+                      </div>
+                      <div className='text-2xl font-bold'>
+                        {leastPopularExam}
+                      </div>
+                      <div className='text-sm text-muted-foreground'>
+                        Bu həftə {leastPopularAttempts} cəhd
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <div className='text-sm font-medium'>
-                      Ən Az Daxil Olunan
-                    </div>
-                    <div className='text-2xl font-bold'>Müasir Fizika</div>
-                    <div className='text-sm text-muted-foreground'>
-                      Bu həftə 15 cəhd
-                    </div>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>
