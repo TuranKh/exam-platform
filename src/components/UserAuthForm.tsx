@@ -55,10 +55,6 @@ export function UserAuthForm({
               autoCorrect='off'
             />
           </div>
-          <div className='ml-auto flex items-center space-x-2'>
-            <Switch id='new-user' />
-            <Label htmlFor='new-user'>Yeni istifadəçi</Label>
-          </div>
           <Button type='submit'>Daxil ol</Button>
         </div>
       </form>
