@@ -177,8 +177,7 @@ const staticColumns: Column<UserExamDetails>[] = [
     accessor: "examName",
     align: "left",
     Render: (data: UserExamDetails) => {
-      console.log({ data });
-      return data.exams.name;
+      return data.exams?.name;
     },
   },
   {
