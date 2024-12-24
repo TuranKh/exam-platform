@@ -10,8 +10,11 @@ import {
 } from "@/components/ui/pagination";
 import usePagination from "@/hooks/usePagination";
 import { answerOptions } from "@/pages/exams/exam";
-import ExamService from "@/service/ExamService";
+import ExamService, { UserExamDetails } from "@/service/ExamService";
 import StorageService from "@/service/StorageService";
+import UserExamsService from "@/service/UserExamsService";
+import UserService from "@/service/UserService";
+import { differenceInMinutes, differenceInSeconds } from "date-fns";
 import { BookOpen, CircleChevronRight, Eraser, Timer } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -36,23 +39,36 @@ export default function Exam() {
     duration: number;
   }>({});
   const [questions, setQuestions] = useState<Question[]>([]);
+  const { data: userDetails, isLoading: userDetailsLoading } = useQuery({
+    queryFn: UserService.getUser,
+    queryKey: ["get-user"],
+  });
   const { data: existingExamDetails, isLoading } = useQuery({
     queryKey: ["get-exam", id],
     queryFn: async () => {
-      const details = ExamService.getExam(Number(id), false);
-      return details;
+      if (!userDetails?.isAdmin) {
+        UserExamsService.startExam({
+          userId: userDetails?.id,
+          examId: id,
+        });
+      }
+      const details = await ExamService.getExam(Number(id), false);
+      return details as UserExamDetails;
     },
+    enabled: !userDetailsLoading,
   });
 
   useEffect(() => {
     (async () => {
       if (existingExamDetails) {
         setExamDetails({
-          duration: existingExamDetails.duration,
-          name: existingExamDetails.name,
+          duration: existingExamDetails.exams.duration,
+          name: existingExamDetails.exams.name,
         });
         setQuestions(() => {
-          const existingQuestions = JSON.parse(existingExamDetails.questions);
+          const existingQuestions = JSON.parse(
+            existingExamDetails.exams.questions,
+          );
           paginationDetails.setTotalRowsNumber(existingQuestions.length);
           return existingQuestions.map(
             (question: { id: string; answerId: number; filePath: string }) => {
@@ -139,6 +155,19 @@ export default function Exam() {
     }
   };
 
+  const secondsLeft = useMemo(() => {
+    if (!existingExamDetails) return 0;
+    const started = new Date(existingExamDetails.startDate);
+    const now = new Date();
+    console.log({
+      started,
+      now,
+    });
+    const difference = differenceInSeconds(started, now);
+
+    return difference + existingExamDetails.exams.duration * 60;
+  }, [existingExamDetails]);
+
   return (
     <>
       {examDetails?.duration && (
@@ -152,7 +181,7 @@ export default function Exam() {
             }}
           />
           <div className={`${showTimer ? "block" : "hidden"}`}>
-            <Countdown initialTime={examDetails.duration * 60} />
+            <Countdown durationInSeconds={secondsLeft} />
           </div>
         </div>
       )}

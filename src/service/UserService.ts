@@ -54,7 +54,6 @@ export default class UserService {
   static async getAllUsersDetails(
     filters: Partial<Filter<UsedFilters>>,
   ): Promise<UserDetails[]> {
-    console.log({ filters });
     const initialQuery = supabase.from("users-details").select("*");
     const finalQuery = RequestHelper.applyFilters(initialQuery, filters);
 

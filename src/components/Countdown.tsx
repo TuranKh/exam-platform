@@ -2,11 +2,11 @@ import { FC, useEffect, useMemo, useState } from "react";
 import { Card } from "./ui/card";
 
 interface CountdownProps {
-  initialTime: number;
+  durationInSeconds: number;
 }
 
-export const Countdown: FC<CountdownProps> = ({ initialTime }) => {
-  const [timeLeft, setTimeLeft] = useState(initialTime);
+export const Countdown: FC<CountdownProps> = ({ durationInSeconds }) => {
+  const [timeLeft, setTimeLeft] = useState(durationInSeconds);
 
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -19,8 +19,8 @@ export const Countdown: FC<CountdownProps> = ({ initialTime }) => {
   }, [timeLeft]);
 
   const progress = useMemo(() => {
-    return (timeLeft / initialTime) * 100;
-  }, [timeLeft, initialTime]);
+    return (timeLeft / durationInSeconds) * 100;
+  }, [timeLeft, durationInSeconds]);
 
   const isWarning = useMemo(() => {
     return timeLeft <= 10;

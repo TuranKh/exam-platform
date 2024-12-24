@@ -5,14 +5,20 @@ import { UserExamFilters } from "@/pages/permissions";
 import { supabase } from "@/supabase/init";
 import { ExamDetails } from "./ExamService";
 import { UserDetails } from "./UserService";
-import { QueryData } from "@supabase/supabase-js";
 
 export default class UserExamsService {
-  static async startExam({ examId, userId, deadline }) {
-    const { data, error } = await supabase
+  static async startExam({ examId, userId }) {
+    const now = new Date();
+    const { error } = await supabase
       .from("user-exams")
-      .insert([{ examId, userId, deadline }])
-      .select();
+      .update([{ startDate: now }])
+      .match({
+        userId,
+        examId,
+      })
+      .is("startDate", null);
+
+    return error;
   }
 
   static async getAll(

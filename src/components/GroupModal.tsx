@@ -41,7 +41,6 @@ export default function GroupModal({
   const { data: students, isLoading: isLoadingStudents } = useQuery({
     queryKey: ["all-users-details", open],
     queryFn: async () => {
-      console.log(groupInitialDetails);
       return UserService.getAllUsersDetails({
         groupId: String(groupInitialDetails.id),
       });
@@ -83,7 +82,6 @@ export default function GroupModal({
     });
   };
   const search = function (e: ChangeEvent<HTMLInputElement>) {
-    console.log(timerId);
     if (timerId) clearTimeout(timerId);
     const input = e.target.value.trim();
     setSearchQuery(input);

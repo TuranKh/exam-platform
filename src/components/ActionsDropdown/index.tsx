@@ -14,11 +14,13 @@ export default function ActionsDropdown({
   onEdit,
   onView,
   onStart,
+  title,
 }: {
   onDelete?: () => void;
   onEdit?: () => void;
   onView?: () => void;
   onStart?: () => void;
+  title: string;
 }) {
   return (
     <DropdownMenu>
@@ -46,7 +48,7 @@ export default function ActionsDropdown({
               onClick={onStart}
             >
               <CirclePlay />
-              Başla
+              {title || "Başla"}
             </DropdownMenuItem>
           )}
           {onView && (

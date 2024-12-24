@@ -54,7 +54,6 @@ export default function NavUser() {
   }, [userDetails]);
 
   const initials = useMemo(() => {
-    console.log(userDetails);
     if (!userDetails) {
       return;
     }

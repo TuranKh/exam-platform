@@ -47,10 +47,10 @@ export default class ExamService {
       return result.data?.[0];
     }
 
-    const result: { data: ExamDetails[] | null } = await supabase
-      .from("exams")
-      .select("name, duration, questionsCount, questions")
-      .eq("id", examId);
+    const result: { data: UserExamDetails[] | null } = await supabase
+      .from("user-exams")
+      .select("id, startDate, userId, examId, isFinished, exams(*)")
+      .eq("examId", examId);
 
     return result.data?.[0];
   }
@@ -136,6 +136,16 @@ export type ExamDetails = NewExamDetails & {
   createdAt: string;
   participantsCount: number;
   isActive: boolean;
+};
+
+export type UserExamDetails = {
+  id: number;
+  examId: number;
+  userId: number;
+  isFinished: boolean;
+  startDate: string;
+  createdAt: string;
+  exams: Pick<ExamDetails, "duration" | "name" | "questions">;
 };
 
 export type ExamFilters = {

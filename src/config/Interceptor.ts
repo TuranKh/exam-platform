@@ -3,7 +3,6 @@ import toast from "react-hot-toast";
 export default function applyInterceptor() {
   const originalFetch = window.fetch;
   window.fetch = async (...args) => {
-    console.log("executed");
     try {
       const response = await originalFetch(...args);
 

@@ -50,6 +50,7 @@ export default function UserExams() {
               onStart={() => {
                 navigate(`${data.examId}`);
               }}
+              title={data.startDate ? "Davam et" : "Başla"}
             />
           );
         },
