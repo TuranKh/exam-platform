@@ -75,7 +75,15 @@ export default function Permissions() {
         Render: (data: UserExamDetails) => (
           <Switch
             checked={data.hasAccess}
-            onClick={() => handleAccessToggle(data.id, !data.hasAccess)}
+            onClick={() => {
+              if (!data.exams.isActive) {
+                toast(`"${data.exams.name}" imtahanı aktiv deyil!`, {
+                  icon: "☢️",
+                });
+              }
+
+              handleAccessToggle(data.id, !data.hasAccess);
+            }}
             className='mx-auto'
           />
         ),
