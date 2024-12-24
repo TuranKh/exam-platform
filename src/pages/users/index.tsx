@@ -1,7 +1,5 @@
-import ActionsDropdown from "@/components/ActionsDropdown";
 import CustomTable, { Column } from "@/components/CustomtTable";
 import { FormFieldType, InputDetails } from "@/components/FormBuilder";
-import GroupModal from "@/components/GroupModal";
 import Search from "@/components/Search";
 import {
   Select,
@@ -18,9 +16,9 @@ import usePagination from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
 import GroupService, { GroupDetails } from "@/service/GroupService";
 import UserService, { UserDetails } from "@/service/UserService";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
-import { useQuery, useQueryClient } from "react-query";
+import { useQuery } from "react-query";
 import GroupActionsCell from "./GroupActionCell";
 
 export type UsedFilters = Pick<
@@ -43,6 +41,20 @@ export default function UsersComponent() {
     queryFn: GroupService.getAllForSelect,
     queryKey: ["all-select-groups"],
   });
+
+  const handleStatusToggle = useCallback(
+    async (userId: number, checked: boolean) => {
+      const { error } = await UserService.changeUserAccess(userId, checked);
+
+      if (error) {
+        toast.error("İcazə verərkən xəta baş verdi");
+      } else {
+        toast.success("Uğurla icazə dəyişdirildi");
+        refetch();
+      }
+    },
+    [refetch],
+  );
 
   const userColumns: Column<UserDetails>[] = useMemo(
     () => [
@@ -126,21 +138,7 @@ export default function UsersComponent() {
         ),
       },
     ],
-    [allGroups, refetch],
-  );
-
-  const handleStatusToggle = useCallback(
-    async (userId: number, checked: boolean) => {
-      const { error } = await UserService.changeUserAccess(userId, checked);
-
-      if (error) {
-        toast.error("İcazə verərkən xəta baş verdi");
-      } else {
-        toast.success("Uğurla icazə dəyişdirildi");
-        refetch();
-      }
-    },
-    [refetch],
+    [allGroups, refetch, handleStatusToggle],
   );
 
   const onReset = function () {
