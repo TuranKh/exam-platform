@@ -21,6 +21,7 @@ import {
 } from "recharts";
 import { useQuery } from "react-query";
 import StatisticsService from "@/service/StatisticsService";
+import Loading from "@/components/Loading";
 
 export default function Home() {
   const { data: statisticsData } = useQuery({
@@ -29,7 +30,7 @@ export default function Home() {
   });
 
   if (!statisticsData || statisticsData.length === 0) {
-    return <div>No data available.</div>;
+    return <Loading />;
   }
 
   const statistics = statisticsData[0];

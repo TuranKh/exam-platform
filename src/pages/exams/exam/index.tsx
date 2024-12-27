@@ -1,4 +1,3 @@
-import "./Exam.scss";
 import {
   BookOpen,
   CircleChevronRight,
@@ -8,7 +7,7 @@ import {
   X,
 } from "lucide-react";
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
-
+import "./Exam.scss";
 import {
   closestCenter,
   DndContext,
@@ -23,10 +22,10 @@ import {
   SortableContext,
   useSortable,
 } from "@dnd-kit/sortable";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import DateUtils from "@/lib/date-utils";
 import ExamService from "@/service/ExamService";
 import StorageService from "@/service/StorageService";
 import { AvailableDialogs, useVisualStore } from "@/store/VisualStore";
@@ -34,8 +33,7 @@ import { CSS } from "@dnd-kit/utilities";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import DateUtils from "@/lib/date-utils";
-import AddButton from "@/components/AddButton";
+import CustomSelect from "@/components/FormBuilder/components/CustomSelect";
 
 interface Question {
   id: string;
@@ -471,19 +469,27 @@ const SortableItem = React.memo(function SortableItem({
         <p>Loading image...</p>
       )}
       <div>
-        <select
-          value={question.correctAnswer || "null"}
-          onChange={(e) => updateCorrectAnswer(question.id, e.target.value)}
-          className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white'
-        >
-          <option key={"null"}>Cavab seçin</option>
-          {answerOptions.map((answer) => {
-            return <option key={answer}>{answer}</option>;
-          })}
-        </select>
+        <CustomSelect
+          formFieldDetails={{
+            key: "correctAnswer",
+            onChange: (details) => {
+              updateCorrectAnswer(question.id, details.correctAnswer);
+            },
+            label: "Düzgün cavabı seçin",
+            value: question?.correctAnswer,
+          }}
+          options={selectAnswerOptions}
+        />
       </div>
     </div>
   );
 });
 
 export const answerOptions = ["A", "B", "C", "D", "E"];
+
+export const selectAnswerOptions = answerOptions.map((option) => {
+  return {
+    value: option,
+    label: option,
+  };
+});

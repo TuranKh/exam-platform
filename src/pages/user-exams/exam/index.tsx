@@ -1,5 +1,6 @@
 import placeholderImage from "@/assets/placeholder.webp";
 import { Countdown } from "@/components/Countdown";
+import CustomSelect from "@/components/FormBuilder/components/CustomSelect";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -9,18 +10,18 @@ import {
   PaginationLink,
 } from "@/components/ui/pagination";
 import usePagination from "@/hooks/usePagination";
-import { answerOptions } from "@/pages/exams/exam";
 import ExamService, { UserExamDetails } from "@/service/ExamService";
 import StorageService from "@/service/StorageService";
 import UserExamsService from "@/service/UserExamsService";
 import UserService from "@/service/UserService";
-import { differenceInMinutes, differenceInSeconds } from "date-fns";
-import { BookOpen, CircleChevronRight, Eraser, Timer } from "lucide-react";
+import { differenceInSeconds } from "date-fns";
+import { BookOpen, CircleChevronRight, Eraser, Timer, X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useQuery } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Exam.scss";
+import { selectAnswerOptions } from "@/pages/exams/exam";
 
 interface Question {
   id: string;
@@ -94,9 +95,14 @@ export default function Exam() {
       if (index !== -1) {
         newPendingQuestions[index].correctAnswer = value;
       }
+      console.log(newPendingQuestions);
       return newPendingQuestions;
     });
   }
+
+  const activeQuestion = useMemo(() => {
+    return questions[paginationDetails.page];
+  }, [paginationDetails.page, questions]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -122,11 +128,16 @@ export default function Exam() {
     }
   }
 
-  const resetAnswers = function () {};
-
-  const activeQuestion = useMemo(() => {
-    return questions[paginationDetails.page];
-  }, [paginationDetails.page, questions]);
+  const resetAnswers = function () {
+    setQuestions((current) => {
+      return current.map((questionDetails) => {
+        return {
+          ...questionDetails,
+          correctAnswer: null,
+        };
+      });
+    });
+  };
 
   const totalPages = useMemo(() => {
     return Math.ceil(
@@ -309,19 +320,25 @@ const Question = React.memo(function Question({
           className='question-image'
         />
       )}
-      <div>
-        <select
-          value={question.correctAnswer || ""}
-          onChange={(e) => updateCorrectAnswer(question.id, e.target.value)}
-          className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white'
-        >
-          <option value='' disabled>
-            Cavabı seç
-          </option>
-          {answerOptions.map((answer) => {
-            return <option key={answer}>{answer}</option>;
-          })}
-        </select>
+      <div className='flex items-center gap-4 w-60'>
+        <CustomSelect
+          formFieldDetails={{
+            key: "selectedAnswer",
+            onChange: (details) => {
+              updateCorrectAnswer(question.id, details.selectedAnswer);
+            },
+            label: "Düzgün cavabı seçin",
+            value: question?.correctAnswer,
+          }}
+          options={selectAnswerOptions}
+        />
+        <X
+          className='cursor-pointer'
+          color='red'
+          onClick={() => {
+            updateCorrectAnswer(question.id, null);
+          }}
+        />
       </div>
     </div>
   );

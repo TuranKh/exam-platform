@@ -10,7 +10,7 @@ export default function usePagination(perPageProp?: number): PaginationDetails {
 
   useEffect(() => {
     setPage(initialPage);
-  }, [perPage, totalRowsNumber]);
+  }, [perPage]);
 
   useEffect(() => {
     if (perPageProp) {

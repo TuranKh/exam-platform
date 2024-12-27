@@ -11,6 +11,7 @@ import {
 } from "../ui/select";
 import { Switch } from "../ui/switch";
 import "./FormBuilder.scss";
+import CustomSelect from "./components/CustomSelect";
 
 export enum FormFieldType {
   Text = "text",
@@ -26,7 +27,7 @@ export enum FormFieldType {
   CustomElement = "custom-element",
 }
 
-type OptionsValue = string | number | null;
+export type OptionsValue = string | number | null;
 type DateInputValue = Date | null;
 
 export type InputDetails = {
@@ -40,10 +41,11 @@ export type AvailableValues = OptionsValue | DateInputValue | boolean;
 export type FormChangeProps = {
   [key: string]: AvailableValues;
 };
+type Options = Record<string, Array<{ label: string; value: OptionsValue }>>;
 
 export type FormDetails = {
   inputs: Array<InputDetails>;
-  options?: Record<string, Array<{ label: string; value: OptionsValue }>>;
+  options?: Options;
   onChange: (details: FormChangeProps) => void;
   values: Record<string, AvailableValues>;
 };
@@ -56,6 +58,8 @@ export default function FormBuilder({ form }: { form: FormDetails }) {
         onChange: form.onChange,
         value: form.values[inputDetails.key],
       };
+
+      const options = form.options?.[inputDetails.key] || [];
 
       switch (formFieldDetails.type) {
         case FormFieldType.Text:
@@ -79,31 +83,10 @@ export default function FormBuilder({ form }: { form: FormDetails }) {
           );
         case FormFieldType.Select:
           return (
-            <>
-              <Select
-                value={
-                  formFieldDetails.value ? String(formFieldDetails.value) : ""
-                }
-                onValueChange={(value) => {
-                  form.onChange({ [formFieldDetails.key]: value });
-                }}
-              >
-                <SelectTrigger className='w-full'>
-                  <SelectValue
-                    placeholder={formFieldDetails.label || "Temporary"}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {form.options?.[formFieldDetails.key]?.map((option) => (
-                      <SelectItem value={String(option.value)}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </>
+            <CustomSelect
+              options={options}
+              formFieldDetails={formFieldDetails}
+            />
           );
         case FormFieldType.DatePicker:
           return (

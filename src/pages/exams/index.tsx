@@ -1,11 +1,7 @@
 import ActionsDropdown from "@/components/ActionsDropdown";
 import AddButton from "@/components/AddButton";
 import CustomTable from "@/components/CustomtTable";
-import {
-  AvailableValues,
-  FormFieldType,
-  InputDetails,
-} from "@/components/FormBuilder";
+import { FormFieldType, InputDetails } from "@/components/FormBuilder";
 import Search from "@/components/Search";
 import { Switch } from "@/components/ui/switch";
 import useFilter, { Filter } from "@/hooks/useFilter";

@@ -6,15 +6,9 @@ import useFilter, { Filter } from "@/hooks/useFilter";
 import usePagination, { initialPage } from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
 import ExamService, { ExamDetails, ExamFilters } from "@/service/ExamService";
-import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "react-query";
+import { useMemo } from "react";
+import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
-
-const filterInitialState = {
-  name: "",
-  date: "",
-  isActive: false,
-};
 
 export default function UserExams() {
   const navigate = useNavigate();

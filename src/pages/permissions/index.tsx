@@ -22,23 +22,22 @@ export default function Permissions() {
     useFilter<Filter<UserExamFilters>>();
   const paginationDetails = usePagination(10);
   const queryClient = useQueryClient();
+
   const {
     data: exams,
     isFetching: isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["permissions-exams", filters],
-    queryFn: () => UserExamsService.getAll(filters, paginationDetails),
-    cacheTime: 0,
+    queryKey: ["permissions-exams", filters, paginationDetails.page],
+    queryFn: () => {
+      console.log(paginationDetails.page);
+      return UserExamsService.getAll(filters, paginationDetails);
+    },
   });
 
   useEffect(() => {
     paginationDetails.setTotalRowsNumber(exams?.count || 0);
   }, [exams, paginationDetails]);
-
-  useEffect(() => {
-    refetch();
-  }, [paginationDetails.page, refetch]);
 
   const { data: examOptions } = useQuery({
     queryFn: ExamService.getAllForSelect,
@@ -97,16 +96,17 @@ export default function Permissions() {
   };
 
   const resetPagination = function () {
-    if (paginationDetails.page !== initialPage) {
-      paginationDetails.setPage(initialPage);
-    } else {
+    if (paginationDetails.page === initialPage) {
       refetch();
+      return;
     }
+
+    paginationDetails.setPage(initialPage);
   };
 
   const onReset = function () {
     resetFilters();
-    refetch();
+    resetPagination();
   };
 
   return (

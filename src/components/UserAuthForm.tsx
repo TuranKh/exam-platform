@@ -34,6 +34,7 @@ export function UserAuthForm({
               Email
             </Label>
             <Input
+              disabled
               id='email'
               placeholder='Email'
               type='email'
@@ -47,6 +48,7 @@ export function UserAuthForm({
               Şifrə
             </Label>
             <Input
+              disabled
               id='password'
               placeholder='Şifrə'
               type='password'
@@ -55,7 +57,9 @@ export function UserAuthForm({
               autoCorrect='off'
             />
           </div>
-          <Button type='submit'>Daxil ol</Button>
+          <Button disabled type='submit'>
+            Daxil ol
+          </Button>
         </div>
       </form>
 
