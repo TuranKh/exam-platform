@@ -50,14 +50,16 @@ export default function NavUser() {
     if (!userDetails) {
       return;
     }
-    return `${userDetails.name} ${userDetails.surname}`;
+    return `${userDetails.name} ${userDetails.surname || ""}`;
   }, [userDetails]);
 
   const initials = useMemo(() => {
     if (!userDetails) {
       return;
     }
-    return `${userDetails.name[0].toUpperCase()}${userDetails.surname[0].toUpperCase()}`;
+    return `${userDetails.name?.[0]?.toUpperCase() || ""}${(
+      userDetails.surname?.[0] || ""
+    ).toUpperCase()}`;
   }, [userDetails]);
 
   return (

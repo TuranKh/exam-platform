@@ -96,7 +96,7 @@ export default class ExamService {
   }
 
   static async getUserSpecificExams(
-    filters: Filter,
+    filters: Filter<ExamFilters>,
     paginationDetails: PaginationDetails,
   ) {
     const range = calculateRange(paginationDetails);
@@ -136,8 +136,14 @@ export type ExamDetails = NewExamDetails & {
   createdAt: string;
   participantsCount: number;
   isActive: boolean;
+  examState: ExamState;
 };
 
+export enum ExamState {
+  Ongoing = "Ongoing",
+  Ended = "Ended",
+  NotStarted = "NotStarted",
+}
 export type UserExamDetails = {
   id: number;
   examId: number;

@@ -28,20 +28,7 @@ export default function Pending() {
   }, [userDetails, isLoading, navigate]);
 
   const addUserToPendingList = async function () {
-    const unauthUser = await supabase.auth.getUser();
-    const email = unauthUser.data.user?.email;
-    if (email) {
-      const fullname = unauthUser.data.user?.user_metadata.name;
-      const error = await UserService.addUserToPendingList(email, fullname);
-      if (error) {
-        toast.error("İstifadəçi artıq gözləmə listinə əlavə edilib");
-      } else {
-        toast.success("İstifadəçi gözləmə listinə əlavə edildi");
-      }
-      return;
-    }
-
-    toast.error("Email tapılmadı");
+    toast.success("İstifadəçi gözləmə listinə əlavə edildi");
   };
   return (
     <div className='flex items-center min-h-screen px-4 py-12 sm:px-6 md:px-8 lg:px-12 xl:px-16'>

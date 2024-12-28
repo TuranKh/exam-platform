@@ -158,4 +158,12 @@ const staticColumns: Column<ExamDetails>[] = [
     accessor: "questionsCount",
     align: "center",
   },
+  {
+    header: "Status",
+    accessor: "examState",
+    align: "center",
+    Render: (data: ExamDetails) => {
+      return data.examState;
+    },
+  },
 ];

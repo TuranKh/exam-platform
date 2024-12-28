@@ -185,7 +185,7 @@ const staticColumns: Column<UserExamDetails>[] = [
     accessor: "participantName",
     align: "left",
     Render: (data: UserExamDetails) =>
-      `${data?.users?.name} ${data?.users?.surname}`,
+      `${data?.users?.name} ${data?.users?.surname || ""}`,
   },
   {
     header: "Qrup",
