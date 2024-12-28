@@ -106,7 +106,7 @@ export default function Exam() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    submitAnswers();
+    await submitAnswers();
   }
 
   async function submitAnswers() {
@@ -179,6 +179,14 @@ export default function Exam() {
     return difference + existingExamDetails.exams.duration * 60;
   }, [existingExamDetails]);
 
+  const onTimeout = async function () {
+    await submitAnswers();
+    navigate("/available-exams");
+    toast("İmtahan vaxtınız bitdi", {
+      icon: "☢️",
+    });
+  };
+
   return (
     <>
       {examDetails?.duration && (
@@ -192,7 +200,13 @@ export default function Exam() {
             }}
           />
           <div className={`${showTimer ? "block" : "hidden"}`}>
-            <Countdown durationInSeconds={secondsLeft} />
+            <Countdown
+              onTimeout={onTimeout}
+              totalDurationInSeconds={
+                (existingExamDetails?.exams.duration || 0) * 60
+              }
+              durationLeftInSeconds={secondsLeft}
+            />
           </div>
         </div>
       )}
