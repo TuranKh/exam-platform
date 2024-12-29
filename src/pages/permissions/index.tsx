@@ -7,6 +7,7 @@ import usePagination, { initialPage } from "@/hooks/usePagination";
 import ExamService from "@/service/ExamService";
 import GroupService from "@/service/GroupService";
 import UserExamsService, { UserExamDetails } from "@/service/UserExamsService";
+import { BadgePlus } from "lucide-react";
 import { useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
@@ -64,6 +65,18 @@ export default function Permissions() {
     [queryClient],
   );
 
+  const addAttemptCount = async function (rowId: number) {
+    const error = await UserExamsService.incrementAttemptCount(rowId);
+
+    if (error) {
+      toast.error("Cəhd sayını artırarkən xəta baş verdi");
+      return;
+    }
+
+    toast.success("Cəhd sayı uğurla artırıldı");
+    await refetch();
+  };
+
   const columns = useMemo(() => {
     return [
       ...staticColumns,
@@ -86,6 +99,18 @@ export default function Permissions() {
             className='mx-auto'
           />
         ),
+      },
+      {
+        header: "Cəhd sayını artır",
+        accessor: "givePermission",
+        align: "center",
+        Render: (data: UserExamDetails) => {
+          return (
+            <button onClick={() => addAttemptCount(data.id)}>
+              <BadgePlus className='text-primary' />
+            </button>
+          );
+        },
       },
     ];
   }, [handleAccessToggle]);

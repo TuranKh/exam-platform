@@ -21,6 +21,14 @@ export default class UserExamsService {
     return error;
   }
 
+  static async incrementAttemptCount(rowId: number) {
+    const { error } = await supabase.rpc("increment_attempts", {
+      row_id: rowId,
+    });
+
+    return error;
+  }
+
   static async getAll(
     filters: Filter<UserExamFilters>,
     paginationDetails?: PaginationRequest,
