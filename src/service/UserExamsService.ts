@@ -39,7 +39,7 @@ export default class UserExamsService {
     isFinished,
     score,
     duration,
-    attemptCount,
+    totalGivenAttemptsCount,
     hasAccess,
     exams (
       id,
@@ -94,7 +94,7 @@ export type UserExamDetails = {
   isFinished: boolean;
   score: number;
   duration: number;
-  attemptCount: number;
+  totalGivenAttemptsCount: number;
   hasAccess: boolean;
   exams: Partial<ExamDetails>;
   users: Partial<UserDetails>;

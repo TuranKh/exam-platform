@@ -203,8 +203,8 @@ const staticColumns: Column<UserExamDetails>[] = [
   },
   {
     header: "Cəhd sayı",
-    accessor: "attemptCount",
+    accessor: "totalGivenAttemptsCount",
     align: "center",
-    Render: (data: UserExamDetails) => data.attemptCount,
+    Render: (data: UserExamDetails) => data.totalGivenAttemptsCount,
   },
 ];
