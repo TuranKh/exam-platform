@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { az } from "date-fns/locale";
+import { inputStyling } from "./FormBuilder/components/CustomSelect";
 
 type DatePickerProps = {
   date: string | null;
@@ -31,6 +32,7 @@ const DatePicker: FC<DatePickerProps> = function ({
             "w-[240px] justify-start text-left font-normal",
             !date && "text-muted-foreground",
           )}
+          style={inputStyling}
         >
           <CalendarIcon />
           {date ? format(date, "PP") : <span>Tarix seçin</span>}

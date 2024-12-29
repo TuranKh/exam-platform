@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AvailableValues, FormChangeProps, OptionsValue } from "..";
+import { Input } from "@/components/ui/input";
 
 export default function CustomSelect({
   formFieldDetails,
@@ -27,7 +28,7 @@ export default function CustomSelect({
         formFieldDetails.onChange({ [formFieldDetails.key]: value });
       }}
     >
-      <SelectTrigger className='w-full'>
+      <SelectTrigger className='w-full border' style={inputStyling}>
         <SelectValue placeholder={formFieldDetails.label || "Temporary"} />
       </SelectTrigger>
       <SelectContent>
@@ -40,3 +41,8 @@ export default function CustomSelect({
     </Select>
   );
 }
+
+export const inputStyling = {
+  border: "1px solid hsl(var(--input))",
+  color: "hsl(var(--muted-foreground))",
+};
