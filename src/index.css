@@ -121,3 +121,9 @@ h5,
 h6 {
   color: hsl(var(--primary));
 }
+
+table {
+  tr {
+    height: 3.5rem;
+  }
+}

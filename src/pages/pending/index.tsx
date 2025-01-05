@@ -1,6 +1,5 @@
 import { Icons } from "@/components/Icons";
 import UserService from "@/service/UserService";
-import { supabase } from "@/supabase/init";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 import { useQuery } from "react-query";

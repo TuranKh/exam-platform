@@ -7,18 +7,9 @@ import { ExamDetails } from "./ExamService";
 import { UserDetails } from "./UserService";
 
 export default class UserExamsService {
-  static async startExam({ examId, userId }) {
-    const now = new Date();
-    const { error } = await supabase
-      .from("user-exams")
-      .update([{ startDate: now }])
-      .match({
-        userId,
-        examId,
-      })
-      .is("startDate", null);
-
-    return error;
+  static async startExam(rowId: number) {
+    const { data } = await supabase.rpc("start_exam", { row_id: rowId });
+    return data;
   }
 
   static async incrementAttemptCount(rowId: number) {
@@ -46,7 +37,6 @@ export default class UserExamsService {
     examId,
     isFinished,
     score,
-    duration,
     totalGivenAttemptsCount,
     hasAccess,
     exams (
@@ -62,12 +52,14 @@ export default class UserExamsService {
       name,
       surname, 
       patronymic,
+      isAdmin,
       groups (*)
     )
   `,
         { count: "exact" },
       )
-      .order("hasAccess", { ascending: false });
+      .order("hasAccess", { ascending: false })
+      .eq("users.isAdmin", false);
 
     const finalQuery = RequestHelper.applyFilters(initialQuery, filters);
     finalQuery.range(...range);
@@ -87,6 +79,19 @@ export default class UserExamsService {
       .select("*");
 
     return { error };
+  }
+
+  static async submitAnswers(
+    rowId: number,
+    answers: Record<string, string | null>,
+  ) {
+    const { error } = await supabase
+      .from("user-exams")
+      .update({ submittedAnswers: answers })
+      .eq("id", rowId)
+      .select("*");
+
+    return error;
   }
 }
 

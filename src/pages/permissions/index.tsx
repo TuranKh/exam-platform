@@ -31,7 +31,6 @@ export default function Permissions() {
   } = useQuery({
     queryKey: ["permissions-exams", filters, paginationDetails.page],
     queryFn: () => {
-      console.log(paginationDetails.page);
       return UserExamsService.getAll(filters, paginationDetails);
     },
   });

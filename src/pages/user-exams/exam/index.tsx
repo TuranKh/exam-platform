@@ -10,10 +10,9 @@ import {
   PaginationLink,
 } from "@/components/ui/pagination";
 import usePagination from "@/hooks/usePagination";
-import ExamService, { UserExamDetails } from "@/service/ExamService";
+import { selectAnswerOptions } from "@/pages/exams/exam";
 import StorageService from "@/service/StorageService";
 import UserExamsService from "@/service/UserExamsService";
-import UserService from "@/service/UserService";
 import { differenceInSeconds } from "date-fns";
 import { BookOpen, CircleChevronRight, Eraser, Timer, X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
@@ -21,7 +20,6 @@ import toast from "react-hot-toast";
 import { useQuery } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Exam.scss";
-import { selectAnswerOptions } from "@/pages/exams/exam";
 
 interface Question {
   id: string;
@@ -29,6 +27,8 @@ interface Question {
   correctAnswer: string | null;
   filePath?: string;
 }
+
+type Answer = Record<string, string | null>;
 
 export default function Exam() {
   const [showTimer, setShowTimer] = useState(true);
@@ -39,92 +39,96 @@ export default function Exam() {
     name: string;
     duration: number;
   }>({});
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const { data: userDetails, isLoading: userDetailsLoading } = useQuery({
-    queryFn: UserService.getUser,
-    queryKey: ["get-user"],
-  });
+  const [questions, setQuestions] = useState<Omit<Question, "correctAnswer">[]>(
+    [],
+  );
+  const [answers, setAnswers] = useState<Answer>({});
+
   const { data: existingExamDetails, isLoading } = useQuery({
     queryKey: ["get-exam", id],
     queryFn: async () => {
-      if (!userDetails?.isAdmin) {
-        UserExamsService.startExam({
-          userId: userDetails?.id,
-          examId: id,
-        });
-      }
-      const details = await ExamService.getExam(Number(id), false);
-      return details as UserExamDetails;
+      const examDetails = await UserExamsService.startExam(Number(id));
+      return examDetails[0];
     },
-    enabled: !userDetailsLoading,
   });
 
   useEffect(() => {
+    const storedAnswers = sessionStorage.getItem("answers");
+
+    if (storedAnswers) {
+      setAnswers(JSON.parse(storedAnswers));
+    }
+  }, []);
+
+  useEffect(() => {
+    const storeAnswers = function () {
+      window.sessionStorage.setItem("answers", JSON.stringify(answers));
+    };
+    window.onbeforeunload = storeAnswers;
+
+    return () => {
+      window.onbeforeunload = null;
+    };
+  }, [answers]);
+
+  useEffect(() => {
     (async () => {
-      if (existingExamDetails) {
-        setExamDetails({
-          duration: existingExamDetails.exams.duration,
-          name: existingExamDetails.exams.name,
-        });
-        setQuestions(() => {
-          const existingQuestions = JSON.parse(
-            existingExamDetails.exams.questions,
-          );
-          paginationDetails.setTotalRowsNumber(existingQuestions.length);
-          return existingQuestions.map(
-            (question: { id: string; answerId: number; filePath: string }) => {
-              return {
-                id: question.id,
-                correctAnswer: question.answerId,
-                filePath: question.filePath,
-              };
-            },
-          );
-        });
-      } else if (!isLoading) {
-        toast.error("İmtahan tapılmadı!");
-        navigate("/available-exams");
+      if (!existingExamDetails) {
+        if (!isLoading) {
+          toast.error("İmtahan tapılmadı!");
+          navigate("/available-exams");
+        }
+        return;
       }
+
+      setExamDetails({
+        duration: existingExamDetails.duration,
+        name: existingExamDetails.name,
+      });
+      setQuestions(() => {
+        const existingQuestions = JSON.parse(existingExamDetails.questions);
+        paginationDetails.setTotalRowsNumber(existingQuestions.length);
+        return existingQuestions.map(
+          (question: { id: string; answerId: number; filePath: string }) => {
+            return {
+              id: question.id,
+              filePath: question.filePath,
+            };
+          },
+        );
+      });
     })();
-  }, [existingExamDetails, isLoading]);
+  }, [existingExamDetails, isLoading, navigate]);
 
   function updateCorrectAnswer(id: string, value: string) {
-    setQuestions((prev) => {
-      const newPendingQuestions = [...prev];
-      const index = newPendingQuestions.findIndex((item) => item.id === id);
-      if (index !== -1) {
-        newPendingQuestions[index].correctAnswer = value;
-      }
-      console.log(newPendingQuestions);
-      return newPendingQuestions;
+    setAnswers((curr) => {
+      return {
+        ...curr,
+        [id]: value,
+      };
     });
   }
 
   const activeQuestion = useMemo(() => {
-    return questions[paginationDetails.page];
-  }, [paginationDetails.page, questions]);
+    const questionDetails = questions[paginationDetails.page];
+    return {
+      ...questionDetails,
+      correctAnswer: answers[questionDetails?.id],
+    };
+  }, [paginationDetails.page, questions, answers]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await submitAnswers();
+    submitExam();
   }
 
-  async function submitAnswers() {
-    const answers: Record<string, string | null> = {};
+  async function submitExam() {
+    const error = await UserExamsService.submitAnswers(Number(id), answers);
 
-    const finalExamDetails = {
-      name: examDetails.name,
-      duration: examDetails.duration,
-      questionsCount: questions.length,
-      questions: JSON.stringify(questionDetails),
-      answers: JSON.stringify(answers),
-    };
-
-    const result = await ExamService.createExam(finalExamDetails);
-
-    if (result) {
-      toast.success("Yeni imtahan uğurla yaradıldı");
-      navigate("/exams");
+    if (error) {
+      toast.error("Sualları təsdiq edərkən xəta baş verdi!");
+    } else {
+      navigate("/available-exams");
     }
   }
 
@@ -170,17 +174,13 @@ export default function Exam() {
     if (!existingExamDetails) return 0;
     const started = new Date(existingExamDetails.startDate);
     const now = new Date();
-    console.log({
-      started,
-      now,
-    });
     const difference = differenceInSeconds(started, now);
 
-    return difference + existingExamDetails.exams.duration * 60;
+    return difference + existingExamDetails.duration * 60;
   }, [existingExamDetails]);
 
   const onTimeout = async function () {
-    await submitAnswers();
+    await submitExam();
     navigate("/available-exams");
     toast("İmtahan vaxtınız bitdi", {
       icon: "☢️",
@@ -202,9 +202,7 @@ export default function Exam() {
           <div className={`${showTimer ? "block" : "hidden"}`}>
             <Countdown
               onTimeout={onTimeout}
-              totalDurationInSeconds={
-                (existingExamDetails?.exams.duration || 0) * 60
-              }
+              totalDurationInSeconds={(existingExamDetails?.duration || 0) * 60}
               durationLeftInSeconds={secondsLeft}
             />
           </div>
@@ -248,7 +246,7 @@ export default function Exam() {
                           <PaginationLink
                             href='#'
                             className={
-                              questions?.[page - 1]?.correctAnswer
+                              answers[questions?.[page - 1].id]
                                 ? "answered"
                                 : "not-answered"
                             }
@@ -277,7 +275,7 @@ export default function Exam() {
                     <Eraser />
                   </Button>
                   <Button type='submit'>
-                    Təsdiqlə
+                    İmtahanı yekunlaşdır
                     <CircleChevronRight />
                   </Button>
                 </div>
@@ -298,11 +296,7 @@ const Question = React.memo(function Question({
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
-    if (question.file) {
-      const url = URL.createObjectURL(question.file);
-      setImageUrl(url);
-      return () => URL.revokeObjectURL(url);
-    } else if (question.filePath) {
+    if (question.filePath) {
       const fetchImage = async () => {
         setLoading(true);
         const data = await StorageService.getFile(question.filePath);

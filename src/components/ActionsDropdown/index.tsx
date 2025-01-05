@@ -4,7 +4,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CirclePlay, Delete, Edit, EllipsisVertical, Eye } from "lucide-react";
@@ -20,7 +19,7 @@ export default function ActionsDropdown({
   onEdit?: () => void;
   onView?: () => void;
   onStart?: () => void;
-  title: string;
+  title?: string;
 }) {
   return (
     <DropdownMenu>

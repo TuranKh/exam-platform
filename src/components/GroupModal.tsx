@@ -125,7 +125,6 @@ export default function GroupModal({
             />
           </div>
 
-          {/* Existing Students */}
           <div>
             <Label className='font-medium text-gray-600'>Tələbələr</Label>
             <div className='mt-2 space-y-2 max-h-48 overflow-y-auto border p-2 rounded bg-white'>
@@ -159,7 +158,6 @@ export default function GroupModal({
             </div>
           </div>
 
-          {/* Add New Student Section */}
           <div>
             <Label htmlFor='search' className='mb-2 font-medium text-gray-600'>
               Yeni tələbə əlavə et
@@ -171,14 +169,12 @@ export default function GroupModal({
                 placeholder='Istifadəçi adı və ya email axtar...'
                 value={searchQuery}
                 onChange={search}
-                // onChange={(e) => setSearchQuery(e.target.value)}
                 className='border-gray-300'
               />
               <Button onClick={handleSearch} disabled={!searchQuery.trim()}>
                 Axtar
               </Button>
             </div>
-            {/* Search Results List */}
             {searchResults.length > 0 && (
               <div className='mt-2 space-y-2 max-h-40 overflow-y-auto border p-2 rounded bg-white'>
                 {searchResults.map((user) => (
@@ -203,7 +199,6 @@ export default function GroupModal({
           </div>
         </div>
 
-        {/* Modal Footer */}
         <DialogFooter className='mt-6'>
           <Button
             type='submit'

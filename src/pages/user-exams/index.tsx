@@ -5,7 +5,11 @@ import Search from "@/components/Search";
 import useFilter, { Filter } from "@/hooks/useFilter";
 import usePagination, { initialPage } from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
-import ExamService, { ExamDetails, ExamFilters } from "@/service/ExamService";
+import ExamService, {
+  ExamDetails,
+  ExamFilters,
+  ExamState,
+} from "@/service/ExamService";
 import { useMemo } from "react";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
@@ -13,14 +17,14 @@ import { useNavigate } from "react-router-dom";
 export default function UserExams() {
   const navigate = useNavigate();
   const paginationDetails = usePagination();
-  const { filters, resetFilters, setFilters } = useFilter();
+  const { filters, resetFilters, setFilters } = useFilter<ExamFilters>();
 
   const {
     data: exams,
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["all-user-exams"],
+    queryKey: ["all-user-exams", filters],
     queryFn: () => {
       return ExamService.getUserSpecificExams(filters, paginationDetails);
     },
@@ -39,13 +43,17 @@ export default function UserExams() {
         accessor: "action",
         align: "center",
         Render: (data: ExamDetails) => {
+          const isExamEnd = data.examState === ExamState.Ended;
           return (
-            <ActionsDropdown
-              onStart={() => {
-                navigate(`${data.examId}`);
-              }}
-              title={data.startDate ? "Davam et" : "Başla"}
-            />
+            !isExamEnd && (
+              <ActionsDropdown
+                onStart={() => {
+                  navigate(`${data.id}`);
+                }}
+                // title={data.startDate ? "Davam et" : "Başla"}
+                title={ExamStateMapper[data.examState]}
+              />
+            )
           );
         },
       },
@@ -76,8 +84,8 @@ export default function UserExams() {
         formDetails={{
           inputs,
           options: {
-            isActive: options.isActive,
-            id: examOptions || [],
+            status: options.status,
+            examId: examOptions || [],
           },
         }}
       />
@@ -94,7 +102,7 @@ export default function UserExams() {
 
 const inputs: InputDetails[] = [
   {
-    key: "id",
+    key: "examId",
     label: "İmtahan adı",
     type: FormFieldType.Select,
   },
@@ -104,21 +112,31 @@ const inputs: InputDetails[] = [
     type: FormFieldType.DatePicker,
   },
   {
-    key: "isActive",
-    label: "Aktivlik",
+    key: "status",
+    label: "Status",
     type: FormFieldType.Select,
   },
 ];
 
+const ExamStateMapper = {
+  [ExamState.Ongoing]: "Davam edir",
+  [ExamState.Ended]: "Bitib",
+  [ExamState.NotStarted]: "Başlamayıb",
+};
+
 const options = {
-  isActive: [
+  status: [
     {
-      label: "Aktiv",
-      value: "true",
+      label: ExamStateMapper[ExamState.Ongoing],
+      value: ExamState.Ongoing,
     },
     {
-      label: "Deaktiv",
-      value: "false",
+      label: ExamStateMapper[ExamState.Ended],
+      value: ExamState.Ended,
+    },
+    {
+      label: ExamStateMapper[ExamState.NotStarted],
+      value: ExamState.NotStarted,
     },
   ],
 };
@@ -163,7 +181,7 @@ const staticColumns: Column<ExamDetails>[] = [
     accessor: "examState",
     align: "center",
     Render: (data: ExamDetails) => {
-      return data.examState;
+      return ExamStateMapper[data.examState];
     },
   },
 ];

@@ -23,6 +23,12 @@ export default function ProtectedRouter({
   }
 
   const isAuthorized = userDetails?.email;
+  const isPending = userDetails?.isPending;
+
+  if (isPending) {
+    return <Navigate to='/pending' />;
+  }
+
   if (isAuthorized) {
     if (!userRole) {
       return children;

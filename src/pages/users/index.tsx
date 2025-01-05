@@ -72,7 +72,7 @@ export default function UsersComponent() {
         accessor: "name",
         align: "left",
         Render: (row) => {
-          return `${row.name} ${row.surname}`;
+          return `${row.name} ${row.surname || ""}`;
         },
       },
       {

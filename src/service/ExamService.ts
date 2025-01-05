@@ -38,6 +38,20 @@ export default class ExamService {
     return (await result).data as ExamDetails[] | null;
   }
 
+  static async filterUserSpecificExams(
+    filters: Partial<ExamFilters>,
+    range: [number, number],
+  ) {
+    let result = supabase
+      .from("user-specific-exams")
+      .select("*")
+      .order("createdAt", { ascending: false });
+
+    result = RequestHelper.applyFilters(result, filters).range(...range);
+
+    return (await result).data as ExamDetails[] | null;
+  }
+
   static async getExam(examId: number, isTeacher = false) {
     if (isTeacher) {
       const result: { data: ExamDetails[] | null } = await supabase
@@ -102,7 +116,7 @@ export default class ExamService {
     const range = calculateRange(paginationDetails);
     const validFilters = ObjectFormatter.removeNullishValues(filters);
     if (validFilters) {
-      return ExamService.filterExams(validFilters, range);
+      return ExamService.filterUserSpecificExams(validFilters, range);
     }
     return (await supabase.from("user-specific-exams").select("*")).data;
   }
@@ -137,6 +151,7 @@ export type ExamDetails = NewExamDetails & {
   participantsCount: number;
   isActive: boolean;
   examState: ExamState;
+  startDate: string;
 };
 
 export enum ExamState {
