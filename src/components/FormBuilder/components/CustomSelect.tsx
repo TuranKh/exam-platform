@@ -7,7 +7,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AvailableValues, FormChangeProps, OptionsValue } from "..";
-import { Input } from "@/components/ui/input";
 
 export default function CustomSelect({
   formFieldDetails,
@@ -33,9 +32,15 @@ export default function CustomSelect({
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          {options?.map((option) => (
-            <SelectItem value={String(option.value)}>{option.label}</SelectItem>
-          ))}
+          {options.length ? (
+            options?.map((option) => (
+              <SelectItem value={String(option.value)}>
+                {option.label}
+              </SelectItem>
+            ))
+          ) : (
+            <SelectItem value={null}>Seçim yoxdur</SelectItem>
+          )}
         </SelectGroup>
       </SelectContent>
     </Select>
