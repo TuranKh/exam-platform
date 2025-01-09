@@ -1,5 +1,4 @@
 import CustomTable, { Column } from "@/components/CustomtTable";
-import { FormFieldType, InputDetails } from "@/components/FormBuilder";
 import Search from "@/components/Search";
 import {
   Select,
@@ -14,12 +13,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useFilter, { Filter } from "@/hooks/useFilter";
 import usePagination from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
-import GroupService, { GroupDetails } from "@/service/GroupService";
+import GroupService from "@/service/GroupService";
 import UserService, { UserDetails } from "@/service/UserService";
 import { useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery } from "react-query";
-import GroupActionsCell from "./GroupActionCell";
+import Groups from "../groups";
+import { FormFieldType, InputDetails } from "@/components/FormBuilder";
 
 export type UsedFilters = Pick<
   UserDetails,
@@ -154,146 +154,28 @@ export default function UsersComponent() {
   return (
     <div className='flex-1 space-y-4 p-8 pt-6'>
       <Tabs defaultValue='management' className='space-y-4'>
-        <TabsList>
-          <TabsTrigger value='management'>İstifadəçilər</TabsTrigger>
-          <TabsTrigger value='groups'>Qruplar</TabsTrigger>
-        </TabsList>
+        <Search<UsedFilters>
+          onReset={onReset}
+          onSearch={onSearch}
+          formDetails={{
+            inputs,
+            options: {
+              isPending: options.isPending,
+              groupId: allGroups || [],
+            },
+          }}
+        />
 
-        <TabsContent value='management' className='space-y-4'>
-          <Search<UsedFilters>
-            onReset={onReset}
-            onSearch={onSearch}
-            formDetails={{
-              inputs,
-              options: {
-                isPending: options.isPending,
-                groupId: allGroups || [],
-              },
-            }}
-          />
-
-          <CustomTable
-            paginationDetails={paginationDetails}
-            columns={userColumns}
-            data={allUsers || []}
-          />
-        </TabsContent>
-
-        <TabsContent value='groups' className='space-y-4'>
-          <Groups />
-        </TabsContent>
+        <CustomTable
+          paginationDetails={paginationDetails}
+          columns={userColumns}
+          data={allUsers || []}
+        />
       </Tabs>
     </div>
   );
 }
 
-export type GroupFilters = Omit<GroupDetails, "id">;
-
-function Groups() {
-  const paginationDetails = usePagination();
-  const { filters, setFilters, resetFilters } = useFilter<GroupFilters>();
-
-  const { data: allGroups, refetch } = useQuery({
-    queryFn: () => {
-      return GroupService.getAll(filters);
-    },
-    queryKey: ["all-groups", filters],
-  });
-
-  const { data: allSelectGroups } = useQuery({
-    queryFn: () => {
-      return GroupService.getAllForSelect(false);
-    },
-    queryKey: ["all-select-groups-no-null"],
-  });
-
-  const onReset = function () {
-    resetFilters();
-    refetch();
-  };
-
-  const onSearch = function (searchFilter: Filter<GroupFilters>) {
-    setFilters(searchFilter);
-    refetch();
-  };
-
-  return (
-    <>
-      <Search<GroupFilters>
-        onReset={onReset}
-        onSearch={onSearch}
-        formDetails={{
-          inputs: groupInputs,
-          options: {
-            isPending: options.isPending,
-            id: allSelectGroups || [],
-          },
-        }}
-      />
-      <CustomTable
-        paginationDetails={paginationDetails}
-        columns={groupColumns}
-        data={allGroups || []}
-      />
-    </>
-  );
-}
-
-const groupColumns: Column<GroupDetails>[] = [
-  {
-    header: "Adı",
-    accessor: "name",
-    align: "left",
-  },
-  {
-    header: "Tələbə sayı",
-    accessor: "users",
-    align: "center",
-    Render: (data) => {
-      return data.users[0].count;
-    },
-  },
-  {
-    header: "Yaradılma tarixi",
-    accessor: "createdAt",
-    align: "left",
-    Render: (data) => {
-      return DateUtils.getUserFriendlyDate(new Date(data.createdAt));
-    },
-  },
-  {
-    header: "",
-    accessor: "actions",
-    align: "right",
-    Render: (data) => <GroupActionsCell data={data} />,
-  },
-];
-
-const options = {
-  isPending: [
-    {
-      label: "Bəli",
-      value: "true",
-    },
-    {
-      label: "Xeyr",
-      value: "false",
-    },
-  ],
-};
-
-const groupInputs: InputDetails[] = [
-  {
-    key: "id",
-    label: "Qrupun adı",
-    type: FormFieldType.Select,
-  },
-  {
-    key: "createdAt",
-    label: "Yaradılma tarixi",
-    type: FormFieldType.DatePicker,
-  },
-];
 const inputs: InputDetails[] = [
   {
     key: "name",
@@ -331,3 +213,16 @@ const inputs: InputDetails[] = [
     type: FormFieldType.Select,
   },
 ];
+
+const options = {
+  isPending: [
+    {
+      label: "Bəli",
+      value: "true",
+    },
+    {
+      label: "Xeyr",
+      value: "false",
+    },
+  ],
+};

@@ -36,6 +36,10 @@ const router = createBrowserRouter([
     };
   }),
   {
+    path: "/groups",
+    element: <NotFound />,
+  },
+  {
     path: "/not-found",
     element: <NotFound />,
   },

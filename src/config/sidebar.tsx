@@ -1,6 +1,7 @@
 import {
   BookCheck,
   ChartColumn,
+  Group,
   Home as HomeIcon,
   Plus,
   Users as UsersIcon,
@@ -12,6 +13,7 @@ import Home from "@/pages/home";
 import Permissions from "@/pages/permissions";
 import Users from "@/pages/users";
 import UserExams from "@/pages/user-exams";
+import Groups from "@/pages/groups";
 
 export enum UserRole {
   Admin = 1,
@@ -51,6 +53,13 @@ export const sidebarRoutes = [
     url: "/users",
     icon: UsersIcon,
     component: <Users />,
+    allowedRole: UserRole.Admin,
+  },
+  {
+    title: "Qruplar",
+    url: "/groups",
+    icon: Group,
+    component: <Groups />,
     allowedRole: UserRole.Admin,
   },
   {

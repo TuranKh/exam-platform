@@ -12,26 +12,18 @@ import { Label } from "@/components/ui/label";
 import { GroupDetails } from "@/service/GroupService";
 import UserService, { UserDetails } from "@/service/UserService";
 import { Trash2 } from "lucide-react";
-import {
-  ChangeEvent,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
 
 let timerId: null | number = null;
 
 export default function GroupModal({
-  open,
   setOpen,
   groupDetails: groupInitialDetails,
 }: {
   groupDetails: GroupDetails;
-  open: boolean;
-  setOpen: Dispatch<SetStateAction<boolean>>;
+  setOpen: (state: boolean) => void;
 }) {
   const queryClient = useQueryClient();
   const [groupData, setGroupData] = useState<GroupDetails>({} as GroupDetails);
@@ -95,12 +87,24 @@ export default function GroupModal({
     }, 500);
   };
 
+  const saveChanges = function () {
+    if (groupInitialDetails.id) {
+      editGroupDetails();
+    } else {
+      createNewGroup();
+    }
+  };
+
+  const editGroupDetails = function () {};
+
+  const createNewGroup = function () {};
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={!!groupInitialDetails} onOpenChange={setOpen}>
       <DialogContent className='max-w-2xl'>
         <DialogHeader>
           <DialogTitle className='text-xl font-semibold text-gray-800'>
-            "{groupData.name}" qrupun tənzimləmələri
+            "{groupData.name || "Yeni"}" qrupun tənzimləmələri
           </DialogTitle>
           <DialogDescription>
             Burada qrupun adını, mövcud tələbələri və yeni tələbələri əlavə
@@ -109,7 +113,6 @@ export default function GroupModal({
         </DialogHeader>
 
         <div className='space-y-6'>
-          {/* Group Name */}
           <div className='flex flex-col'>
             <Label htmlFor='name' className='mb-2 font-medium text-gray-600'>
               Qrupun adı
@@ -201,7 +204,7 @@ export default function GroupModal({
 
         <DialogFooter className='mt-6'>
           <Button
-            type='submit'
+            onClick={saveChanges}
             className='bg-blue-500 hover:bg-blue-600 text-white'
           >
             Dəyişiklikləri yadda saxla

@@ -1,6 +1,7 @@
 import placeholderImage from "@/assets/placeholder.webp";
 import { Countdown } from "@/components/Countdown";
 import CustomSelect from "@/components/FormBuilder/components/CustomSelect";
+import IconButton from "@/components/IconButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,8 +14,15 @@ import usePagination from "@/hooks/usePagination";
 import { selectAnswerOptions } from "@/pages/exams/exam";
 import StorageService from "@/service/StorageService";
 import UserExamsService from "@/service/UserExamsService";
-import { differenceInSeconds } from "date-fns";
-import { BookOpen, CircleChevronRight, Eraser, Timer, X } from "lucide-react";
+import { constructNow, differenceInSeconds } from "date-fns";
+import {
+  BookOpen,
+  CircleChevronRight,
+  Eraser,
+  Flag,
+  Timer,
+  X,
+} from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useQuery } from "react-query";
@@ -39,9 +47,9 @@ export default function Exam() {
     name: string;
     duration: number;
   }>({});
-  const [questions, setQuestions] = useState<Omit<Question, "correctAnswer">[]>(
-    [],
-  );
+  const [questions, setQuestions] = useState<
+    Array<Omit<Question, "correctAnswer"> & { flagged?: boolean }>
+  >([]);
   const [answers, setAnswers] = useState<Answer>({});
 
   const { data: existingExamDetails, isLoading } = useQuery({
@@ -187,6 +195,18 @@ export default function Exam() {
     });
   };
 
+  const flagQuestion = function () {
+    setQuestions((questions) => {
+      const questionDetails = questions[paginationDetails.page];
+
+      questions.splice(paginationDetails.page, 1, {
+        ...questionDetails,
+        flagged: !questionDetails.flagged,
+      });
+      return [...questions];
+    });
+  };
+
   return (
     <>
       {examDetails?.duration && (
@@ -227,13 +247,19 @@ export default function Exam() {
                 <div className='space-y-4'>
                   {questions.length > 0 && (
                     <div className='questions-wrapper'>
-                      <div className='questions'>
+                      <div className='questions relative'>
                         <Question
                           key={activeQuestion.id}
                           index={paginationDetails.page}
                           question={activeQuestion}
                           updateCorrectAnswer={updateCorrectAnswer}
                         />
+                        <IconButton
+                          onClick={flagQuestion}
+                          className='absolute right-5 bottom-5 bg-amber-400	hover:bg-amber-400/90'
+                        >
+                          <Flag size={15} />
+                        </IconButton>
                       </div>
                     </div>
                   )}
@@ -241,24 +267,27 @@ export default function Exam() {
                 <Pagination>
                   <PaginationContent>
                     {pageNumbers.map((page: number) => {
+                      const isFlagged = questions[page - 1]?.flagged;
                       return (
-                        <PaginationItem key={page}>
-                          <PaginationLink
-                            href='#'
-                            className={
-                              answers[questions?.[page - 1].id]
-                                ? "answered"
-                                : "not-answered"
-                            }
-                            isActive={page - 1 === paginationDetails.page}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              paginationDetails.setPage((page - 1) as number);
-                            }}
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
+                        <>
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              href='#'
+                              className={`${
+                                answers[questions?.[page - 1].id]
+                                  ? "answered"
+                                  : "not-answered"
+                              } ${isFlagged && "flagged"}`}
+                              isActive={page - 1 === paginationDetails.page}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                paginationDetails.setPage((page - 1) as number);
+                              }}
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        </>
                       );
                     })}
                   </PaginationContent>
@@ -328,6 +357,7 @@ const Question = React.memo(function Question({
           className='question-image'
         />
       )}
+
       <div className='flex items-center gap-4 w-60'>
         <CustomSelect
           formFieldDetails={{
@@ -340,13 +370,13 @@ const Question = React.memo(function Question({
           }}
           options={selectAnswerOptions}
         />
-        <X
-          className='cursor-pointer'
-          color='red'
+        <IconButton
           onClick={() => {
             updateCorrectAnswer(question.id, null);
           }}
-        />
+        >
+          <X className='cursor-pointer' />
+        </IconButton>
       </div>
     </div>
   );
