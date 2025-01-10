@@ -61,15 +61,14 @@ export default class UserService {
   }
 
   static async searchByEmailOrName(query: string): Promise<UserDetails[]> {
-    const response = supabase
+    const { data } = await supabase
       .from("users-details")
       .select("*")
       .or(
         `email.ilike.%${query}%,name.ilike.%${query}%,surname.ilike.%${query}%`,
       );
-    // .neq("groupId", String(groupId));
 
-    return (await response).data || [];
+    return data || [];
   }
 
   static async changeUserAccess(rowId: number, isPending: boolean) {
@@ -86,7 +85,8 @@ export default class UserService {
     const [name, surname] = fullname.split(" ");
     const { error } = await supabase
       .from("users")
-      .insert({ email, name, surname });
+      .insert({ email, name, surname })
+      .select();
 
     return error;
   }

@@ -1,6 +1,6 @@
 import { Filter } from "@/hooks/useFilter";
 import RequestHelper from "@/lib/request-helper";
-import { GroupFilters } from "@/pages/users";
+import { GroupFilters } from "@/pages/groups";
 import { supabase } from "@/supabase/init";
 export default class GroupService {
   static async getAllForSelect(addNullOption = true) {
@@ -35,6 +35,16 @@ export default class GroupService {
     const finalQuery = RequestHelper.applyFilters(initialQuery, filters);
 
     return (await finalQuery).data;
+  }
+
+  static async create(groupName: string) {
+    const response = await supabase
+      .from("groups")
+      .insert({
+        name: groupName,
+      })
+      .select();
+    return response;
   }
 }
 

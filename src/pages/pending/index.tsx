@@ -1,9 +1,11 @@
 import { Icons } from "@/components/Icons";
+import { Button } from "@/components/ui/button";
 import UserService from "@/service/UserService";
+import { House } from "lucide-react";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 import { useQuery } from "react-query";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Pending() {
   const navigate = useNavigate();
@@ -39,6 +41,12 @@ export default function Pending() {
           <p className='text-gray-500'>
             Sizin sistemə girişiniz, admin təsdiq verdikdən sonra baş tutacaq.
           </p>
+          <Link to={"/"}>
+            <Button>
+              <House />
+              Ana səhifə
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

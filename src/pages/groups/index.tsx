@@ -86,9 +86,7 @@ export default function Groups() {
           setGroupModalData({});
         }}
       />
-      {groupModalData && (
-        <GroupModal groupDetails={groupModalData} setOpen={setOpen} />
-      )}
+      <GroupModal groupDetails={groupModalData} setOpen={setOpen} />
     </div>
   );
 }

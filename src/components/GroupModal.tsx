@@ -9,12 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GroupDetails } from "@/service/GroupService";
+import GroupService, { GroupDetails } from "@/service/GroupService";
 import UserService, { UserDetails } from "@/service/UserService";
-import { Trash2 } from "lucide-react";
-import { ChangeEvent, useEffect, useState } from "react";
+import { SupabaseErrorCodes } from "@/supabase/init";
+import { Trash2, UserRoundPlus } from "lucide-react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { useQuery, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 
 let timerId: null | number = null;
 
@@ -22,82 +23,129 @@ export default function GroupModal({
   setOpen,
   groupDetails: groupInitialDetails,
 }: {
-  groupDetails: GroupDetails;
+  groupDetails: GroupDetails | null;
   setOpen: (state: boolean) => void;
 }) {
   const queryClient = useQueryClient();
   const [groupData, setGroupData] = useState<GroupDetails>({} as GroupDetails);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   const { data: students, isLoading: isLoadingStudents } = useQuery({
     queryKey: ["all-users-details", open],
     queryFn: async () => {
       return UserService.getAllUsersDetails({
-        groupId: String(groupInitialDetails.id),
+        groupId: String(groupData.id),
       });
     },
+    enabled: !!groupData.id,
   });
 
+  const existingGroupUsers = useMemo(() => {
+    return new Set(students?.map((result) => result.id));
+  }, [students]);
+
   useEffect(() => {
-    setGroupData(groupInitialDetails);
+    if (groupInitialDetails) {
+      setGroupData(groupInitialDetails);
+    }
   }, [groupInitialDetails]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
+
     try {
-      await fetchSearchResults();
+      searchResultsMutation.mutate();
     } catch (e) {
       toast.error("Xəta baş verdi");
     }
   };
 
-  const fetchSearchResults = async function () {
-    const results = await UserService.searchByEmailOrName(searchQuery);
-    setSearchResults(results);
-  };
+  const searchResultsMutation = useMutation({
+    mutationFn: () => {
+      return UserService.searchByEmailOrName(searchQuery);
+    },
+    onError: () => {
+      toast.error("Axtarış edərkən xəta baş verdi 😔");
+    },
+  });
 
   const handleAddUser = async (userId: number) => {
-    const error = await UserService.changeUserGroup(groupData.id, userId);
-    if (!error) {
-      await fetchSearchResults();
-      queryClient.invalidateQueries({
-        queryKey: ["all-users-details"],
+    const newExam = !groupData.id;
+    let groupId: number | null = null;
+    if (newExam) {
+      groupId = await createGroup();
+      if (!groupId) {
+        return;
+      }
+
+      setGroupData((current) => {
+        return {
+          ...current,
+          id: groupId as number,
+        };
       });
     }
+
+    const error = await UserService.changeUserGroup(
+      groupId || groupData.id,
+      userId,
+    );
+
+    if (!error) {
+      invalidateRelatedQueries();
+      return;
+    }
+    toast.success(`İstifadəçi uğurla qrupa əlavə edildi`);
+  };
+
+  const invalidateRelatedQueries = function () {
+    queryClient.invalidateQueries({
+      queryKey: ["all-groups"],
+    });
+
+    queryClient.invalidateQueries({
+      queryKey: ["all-users-details"],
+    });
+  };
+
+  const createGroup = async function () {
+    const noExamName = !groupData.name;
+
+    if (noExamName) {
+      toast.error("Qrupun adını daxil edin");
+      return null;
+    }
+
+    const { data, error } = await GroupService.create(groupData.name);
+    if (error?.code === SupabaseErrorCodes.Duplicate) {
+      toast.error("Qeyd olunan qrup adı artıq istifadə edilib!");
+      return null;
+    }
+    toast.success(`"${groupData.name}" adlı uğurla yaradıldı`);
+    return (data as [GroupDetails])[0].id;
   };
 
   const handleRemoveUser = async (userId: number) => {
     await UserService.changeUserGroup(null, userId);
-    queryClient.invalidateQueries({
-      queryKey: ["all-users-details"],
-    });
+    invalidateRelatedQueries();
   };
   const search = function (e: ChangeEvent<HTMLInputElement>) {
     if (timerId) clearTimeout(timerId);
     const input = e.target.value.trim();
     setSearchQuery(input);
     if (!input) {
-      setSearchResults([]);
+      // setSearchResults([]);
       return;
     }
 
     timerId = window.setTimeout(async () => {
-      await fetchSearchResults();
+      searchResultsMutation.mutate();
     }, 500);
   };
 
   const saveChanges = function () {
-    if (groupInitialDetails.id) {
-      editGroupDetails();
-    } else {
-      createNewGroup();
-    }
+    setOpen(false);
   };
-
-  const editGroupDetails = function () {};
-
-  const createNewGroup = function () {};
 
   return (
     <Dialog open={!!groupInitialDetails} onOpenChange={setOpen}>
@@ -178,27 +226,26 @@ export default function GroupModal({
                 Axtar
               </Button>
             </div>
-            {searchResults.length > 0 && (
-              <div className='mt-2 space-y-2 max-h-40 overflow-y-auto border p-2 rounded bg-white'>
-                {searchResults.map((user) => (
-                  <div
-                    key={user.id}
-                    className='flex items-center justify-between px-2 py-1 rounded hover:bg-gray-50'
+            <div className='mt-2 space-y-2 max-h-40 overflow-y-auto border p-2 rounded bg-white'>
+              {searchResultsMutation.data?.map((user) => (
+                <div
+                  key={user.id}
+                  className='flex items-center justify-between px-2 py-1 rounded hover:bg-gray-50'
+                >
+                  <p className='whitespace-nowrap text-sm'>
+                    {user.name} {user.surname} | {user.email}
+                  </p>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={() => handleAddUser(user.id)}
+                    disabled={existingGroupUsers.has(user.id)}
                   >
-                    <p className='whitespace-nowrap text-sm'>
-                      {user.name} {user.surname} | {user.email}
-                    </p>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      onClick={() => handleAddUser(user.id)}
-                    >
-                      Əlavə et
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+                    <UserRoundPlus />
+                  </Button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
