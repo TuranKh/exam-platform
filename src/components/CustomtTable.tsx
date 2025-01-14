@@ -10,6 +10,7 @@ import { PaginationDetails } from "@/hooks/usePagination";
 import { Loader } from "lucide-react";
 import { ReactNode, useMemo } from "react";
 import CustomPagination from "./CustomPagination";
+import { Checkbox } from "./ui/checkbox";
 
 interface CustomTableProps<T> {
   columns: Column<T>[];
@@ -17,6 +18,7 @@ interface CustomTableProps<T> {
   itemsPerPageOptions?: number[];
   paginationDetails: PaginationDetails;
   isLoading?: boolean;
+  addCheckbox?: boolean;
 }
 
 export default function CustomTable<T>({
@@ -24,6 +26,7 @@ export default function CustomTable<T>({
   data,
   isLoading = false,
   paginationDetails,
+  addCheckbox = false,
 }: CustomTableProps<T>) {
   const relativeRowNumber = useMemo(() => {
     return paginationDetails.page * paginationDetails.perPage + 1;
@@ -60,23 +63,29 @@ export default function CustomTable<T>({
                 key={rowIndex}
                 className={rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"}
               >
-                {columns.map((column, colIndex) => (
-                  <TableCell
-                    key={colIndex}
-                    className={column.className}
-                    style={{ textAlign: column.align || "left" }}
-                  >
-                    {column.Render
-                      ? column.Render(
-                          row,
-                          rowIndex,
-                          relativeRowNumber + rowIndex,
-                        )
-                      : column.accessor
-                      ? (row as any)[column.accessor]
-                      : null}
-                  </TableCell>
-                ))}
+                {columns.map((column, colIndex) => {
+                  return (
+                    <>
+                      <TableCell
+                        key={colIndex}
+                        className={column.className}
+                        style={{ textAlign: column.align || "left" }}
+                      >
+                        {colIndex === 0 && addCheckbox ? (
+                          <Checkbox />
+                        ) : column.Render ? (
+                          column.Render(
+                            row,
+                            rowIndex,
+                            relativeRowNumber + rowIndex,
+                          )
+                        ) : column.accessor ? (
+                          (row as any)[column.accessor]
+                        ) : null}
+                      </TableCell>
+                    </>
+                  );
+                })}
               </TableRow>
             ))
           ) : (

@@ -3,6 +3,7 @@ import {
   CircleChevronRight,
   Eraser,
   GripVertical,
+  Loader,
   Upload,
   X,
 } from "lucide-react";
@@ -391,6 +392,7 @@ const SortableItem = React.memo(function SortableItem({
   index,
 }) {
   const { id } = question;
+  const [imageLoading, setImageLoading] = useState(true);
   const { attributes, listeners, setNodeRef, transform, transition, active } =
     useSortable({ id });
 
@@ -463,10 +465,20 @@ const SortableItem = React.memo(function SortableItem({
       >
         <GripVertical className='w-5 h-5 text-gray-500 cursor-grab' />
       </div>
-      {imageUrl ? (
-        <img src={imageUrl} alt='Question' className='question-image' />
-      ) : (
-        <p>Loading image...</p>
+      <img
+        onLoad={() => {
+          console.log("executed");
+          setImageLoading(false);
+        }}
+        src={imageUrl}
+        style={{ display: imageLoading ? "none" : "block" }}
+        alt='Question'
+        className='question-image'
+      />
+      {imageLoading && (
+        <div className='flex justify-center items-center h-24'>
+          <Loader className='animate-spin' />
+        </div>
       )}
       <div>
         <CustomSelect

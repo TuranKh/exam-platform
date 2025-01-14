@@ -1,5 +1,6 @@
 import CustomTable, { Column } from "@/components/CustomtTable";
 import { FormFieldType, InputDetails } from "@/components/FormBuilder";
+import IconButton from "@/components/IconButton";
 import Search from "@/components/Search";
 import { Switch } from "@/components/ui/switch";
 import useFilter, { Filter } from "@/hooks/useFilter";
@@ -7,10 +8,11 @@ import usePagination, { initialPage } from "@/hooks/usePagination";
 import ExamService from "@/service/ExamService";
 import GroupService from "@/service/GroupService";
 import UserExamsService, { UserExamDetails } from "@/service/UserExamsService";
-import { BadgePlus } from "lucide-react";
+import { BadgeMinus, BadgePlus, CircleArrowOutUpRight } from "lucide-react";
 import { useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
+import { Link } from "react-router-dom";
 
 export type UserExamFilters = {
   groupName: string;
@@ -76,6 +78,18 @@ export default function Permissions() {
     await refetch();
   };
 
+  const reduceAttemptCount = async function (rowId: number) {
+    const error = await UserExamsService.decrementAttemptsCount(rowId);
+
+    if (error) {
+      toast.error("Cəhd sayını azaldarkən xəta baş verdi");
+      return;
+    }
+
+    toast.success("Cəhd sayı uğurla azaldıldı");
+    await refetch();
+  };
+
   const columns = useMemo(() => {
     return [
       ...staticColumns,
@@ -100,14 +114,25 @@ export default function Permissions() {
         ),
       },
       {
-        header: "Cəhd sayını artır",
+        header: "Cəhd sayınə dəyiş",
         accessor: "givePermission",
         align: "center",
         Render: (data: UserExamDetails) => {
           return (
-            <button onClick={() => addAttemptCount(data.id)}>
-              <BadgePlus className='text-primary' />
-            </button>
+            <div className='flex gap-2 justify-center'>
+              <IconButton
+                variant='secondary'
+                onClick={() => reduceAttemptCount(data.id)}
+              >
+                <BadgeMinus className='text-primary' />
+              </IconButton>
+              <IconButton
+                variant='secondary'
+                onClick={() => addAttemptCount(data.id)}
+              >
+                <BadgePlus className='text-primary' />
+              </IconButton>
+            </div>
           );
         },
       },
@@ -150,6 +175,7 @@ export default function Permissions() {
         }}
       />
       <CustomTable
+        addCheckbox
         paginationDetails={paginationDetails}
         isLoading={isLoading}
         columns={columns}
@@ -201,7 +227,12 @@ const staticColumns: Column<UserExamDetails>[] = [
     accessor: "examName",
     align: "left",
     Render: (data: UserExamDetails) => {
-      return data.exams?.name;
+      return (
+        <Link className='flex items-center gap-2' to={`/exams/${data.examId}`}>
+          {data.exams?.name}
+          <CircleArrowOutUpRight size={16} />
+        </Link>
+      );
     },
   },
   {

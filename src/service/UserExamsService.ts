@@ -20,6 +20,14 @@ export default class UserExamsService {
     return error;
   }
 
+  static async decrementAttemptsCount(rowId: number) {
+    const { error } = await supabase.rpc("decrement_attempts", {
+      row_id: rowId,
+    });
+
+    return error;
+  }
+
   static async getAll(
     filters: Filter<UserExamFilters>,
     paginationDetails?: PaginationRequest,
@@ -59,6 +67,7 @@ export default class UserExamsService {
         { count: "exact" },
       )
       .order("hasAccess", { ascending: false })
+      .order("id")
       .eq("users.isAdmin", false);
 
     const finalQuery = RequestHelper.applyFilters(initialQuery, filters);
