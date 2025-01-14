@@ -5,12 +5,12 @@ import Layout from "./components/Layout";
 import Modals from "./components/Modals";
 import ProtectedRouter from "./components/ProtectedRouter";
 import { sidebarRoutes, UserRole } from "./config/sidebar";
-import Dashboard from "./pages";
 import AuthPage from "./pages/auth";
 import Exam from "./pages/exams/exam";
 import NotFound from "./pages/not-found";
 import Pending from "./pages/pending";
 import UserExam from "./pages/user-exams/exam";
+import Profile from "./pages/profile";
 
 const router = createBrowserRouter([
   {
@@ -18,10 +18,12 @@ const router = createBrowserRouter([
     element: <AuthPage />,
   },
   {
-    path: "/dashboard",
+    path: "/profile",
     element: (
       <ProtectedRouter>
-        <Dashboard />
+        <Layout>
+          <Profile />
+        </Layout>
       </ProtectedRouter>
     ),
   },
@@ -35,10 +37,6 @@ const router = createBrowserRouter([
       ),
     };
   }),
-  {
-    path: "/groups",
-    element: <NotFound />,
-  },
   {
     path: "/not-found",
     element: <NotFound />,

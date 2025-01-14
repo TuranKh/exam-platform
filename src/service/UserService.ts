@@ -11,7 +11,7 @@ export default class UserService {
     });
   }
 
-  static async getUser(): Promise<void | Omit<UserDetails, "groups">> {
+  static async getUser(): Promise<void | UserDetails> {
     const userDetails = await supabase.auth.getUser();
     if (userDetails.data.user?.email) {
       const localUserDetails = await UserService.getLocalUser(
@@ -35,7 +35,7 @@ export default class UserService {
   }
 
   static getLocalUser(email: string) {
-    return supabase.from("users").select("*").eq("email", email);
+    return supabase.from("users").select("*, groups(*)").eq("email", email);
   }
 
   static async signOut() {
@@ -66,7 +66,8 @@ export default class UserService {
       .select("*")
       .or(
         `email.ilike.%${query}%,name.ilike.%${query}%,surname.ilike.%${query}%`,
-      );
+      )
+      .order("id");
 
     return data || [];
   }

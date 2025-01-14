@@ -152,6 +152,8 @@ export type ExamDetails = NewExamDetails & {
   isActive: boolean;
   examState: ExamState;
   startDate: string;
+  totalGivenAttemptsCount: number;
+  attemptsLeft: number;
 };
 
 export enum ExamState {

@@ -19,7 +19,11 @@ export default function Groups() {
   );
   const { filters, setFilters, resetFilters } = useFilter<GroupFilters>();
 
-  const { data: allGroups, refetch } = useQuery({
+  const {
+    data: allGroups,
+    refetch,
+    isLoading,
+  } = useQuery({
     queryFn: () => {
       return GroupService.getAll(filters);
     },
@@ -80,6 +84,7 @@ export default function Groups() {
         paginationDetails={paginationDetails}
         columns={columns}
         data={allGroups || []}
+        isLoading={isLoading}
       />
       <AddButton
         onClick={() => {

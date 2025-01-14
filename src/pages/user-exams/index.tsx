@@ -177,6 +177,11 @@ const staticColumns: Column<ExamDetails>[] = [
     align: "center",
   },
   {
+    header: "Qalan cəhdlərin sayı",
+    accessor: "attemptsLeft",
+    align: "center",
+  },
+  {
     header: "Status",
     accessor: "examState",
     align: "center",

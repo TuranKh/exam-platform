@@ -12,10 +12,11 @@ import { Label } from "@/components/ui/label";
 import GroupService, { GroupDetails } from "@/service/GroupService";
 import UserService, { UserDetails } from "@/service/UserService";
 import { SupabaseErrorCodes } from "@/supabase/init";
-import { Trash2, UserRoundPlus } from "lucide-react";
+import { Trash2, UserRoundMinus, UserRoundPlus } from "lucide-react";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useMutation, useQuery, useQueryClient } from "react-query";
+import { Badge } from "./ui/badge";
 
 let timerId: null | number = null;
 
@@ -106,6 +107,8 @@ export default function GroupModal({
     queryClient.invalidateQueries({
       queryKey: ["all-users-details"],
     });
+
+    searchResultsMutation.mutate();
   };
 
   const createGroup = async function () {
@@ -148,7 +151,11 @@ export default function GroupModal({
   };
 
   return (
-    <Dialog open={!!groupInitialDetails} onOpenChange={setOpen}>
+    <Dialog
+      modal={!!groupInitialDetails}
+      open={!!groupInitialDetails}
+      onOpenChange={setOpen}
+    >
       <DialogContent className='max-w-2xl'>
         <DialogHeader>
           <DialogTitle className='text-xl font-semibold text-gray-800'>
@@ -226,26 +233,42 @@ export default function GroupModal({
                 Axtar
               </Button>
             </div>
-            <div className='mt-2 space-y-2 max-h-40 overflow-y-auto border p-2 rounded bg-white'>
-              {searchResultsMutation.data?.map((user) => (
-                <div
-                  key={user.id}
-                  className='flex items-center justify-between px-2 py-1 rounded hover:bg-gray-50'
-                >
-                  <p className='whitespace-nowrap text-sm'>
-                    {user.name} {user.surname} | {user.email}
-                  </p>
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    onClick={() => handleAddUser(user.id)}
-                    disabled={existingGroupUsers.has(user.id)}
+            {Number(searchResultsMutation.data?.length) > 0 && (
+              <div className='mt-2 space-y-2 max-h-40 overflow-y-auto border p-2 rounded bg-white'>
+                {searchResultsMutation.data?.map((user) => (
+                  <div
+                    key={user.id}
+                    className='flex items-center justify-between px-2 py-1 rounded hover:bg-gray-50'
                   >
-                    <UserRoundPlus />
-                  </Button>
-                </div>
-              ))}
-            </div>
+                    <p className='whitespace-nowrap text-sm w-full flex justify-between'>
+                      {user.name} {user.surname} | {user.email}
+                      {user.groupId ? (
+                        <Badge variant='secondary'>{user.groupName}</Badge>
+                      ) : (
+                        <Badge variant='destructive'>Qrupu yoxdur</Badge>
+                      )}
+                    </p>
+                    {existingGroupUsers.has(user.id) ? (
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        onClick={() => handleRemoveUser(user.id)}
+                      >
+                        <UserRoundMinus />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        onClick={() => handleAddUser(user.id)}
+                      >
+                        <UserRoundPlus />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

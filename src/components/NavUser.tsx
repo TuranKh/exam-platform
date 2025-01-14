@@ -25,8 +25,9 @@ import {
 import { useQuery } from "react-query";
 import UserService from "@/service/UserService";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
+import { Badge } from "./ui/badge";
 
 export default function NavUser() {
   const { isMobile } = useSidebar();
@@ -79,7 +80,7 @@ export default function NavUser() {
               </Avatar>
               <div className='grid flex-1 text-left text-sm leading-tight'>
                 <span className='truncate font-semibold'>{fullname}</span>
-                <span className='truncate text-xs'>{userDetails.email}</span>
+                <span className='truncate text-xs'>{userDetails?.email}</span>
               </div>
               <ChevronsUpDown className='ml-auto size-4' />
             </SidebarMenuButton>
@@ -100,16 +101,23 @@ export default function NavUser() {
                 </Avatar>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
                   <span className='truncate font-semibold'>{fullname}</span>
-                  <span className='truncate text-xs'>{userDetails.email}</span>
+                  {userDetails?.groupId && (
+                    <Badge className='text-[8px] absolute right-4'>
+                      {userDetails?.groups?.name}
+                    </Badge>
+                  )}
+                  <span className='truncate text-xs'>{userDetails?.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Hesabım
-              </DropdownMenuItem>
+              <Link to={"/profile"}>
+                <DropdownMenuItem>
+                  <BadgeCheck />
+                  Hesabım
+                </DropdownMenuItem>
+              </Link>
               <DropdownMenuItem>
                 <CreditCard />
                 Ödəniş
