@@ -8,11 +8,11 @@ import {
 } from "@/components/ui/table";
 import { PaginationDetails } from "@/hooks/usePagination";
 import { Loader } from "lucide-react";
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import CustomPagination from "./CustomPagination";
 import { Checkbox } from "./ui/checkbox";
 
-interface CustomTableProps<T> {
+interface CustomTableProps<T extends { id: number }> {
   columns: Column<T>[];
   data: T[];
   itemsPerPageOptions?: number[];
@@ -21,7 +21,7 @@ interface CustomTableProps<T> {
   addCheckbox?: boolean;
 }
 
-export default function CustomTable<T>({
+export default function CustomTable<T extends { id: number }>({
   columns,
   data,
   isLoading = false,
@@ -31,12 +31,49 @@ export default function CustomTable<T>({
   const relativeRowNumber = useMemo(() => {
     return paginationDetails.page * paginationDetails.perPage + 1;
   }, [paginationDetails.page, paginationDetails.perPage]);
+  const [selectedRowIds, setSelectedRowIds] = useState<Set<number>>(new Set());
+
+  const toggleSelectAll = function (checkboxValue: boolean) {
+    console.log(checkboxValue);
+    if (checkboxValue) {
+      setSelectedRowIds((current) => {
+        const arr = [...current, ...data.map((details) => details.id)];
+        return new Set(arr);
+      });
+    } else {
+      setSelectedRowIds(new Set());
+    }
+  };
+
+  const allSelected = useMemo(() => {
+    return selectedRowIds.size === paginationDetails.totalRowsNumber;
+  }, [paginationDetails.totalRowsNumber, selectedRowIds]);
+
+  const toggleColumnCheck = function (checked: boolean, rowId: number) {
+    setSelectedRowIds((current) => {
+      const currentValues = new Set(current);
+      if (checked) {
+        currentValues.add(rowId);
+      } else {
+        currentValues.delete(rowId);
+      }
+      return currentValues;
+    });
+  };
 
   return (
     <div>
       <Table>
         <TableHeader>
           <TableRow>
+            {addCheckbox && (
+              <TableHead>
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={toggleSelectAll}
+                />
+              </TableHead>
+            )}
             {columns.map((column, colIndex) => (
               <TableHead
                 key={colIndex}
@@ -63,27 +100,33 @@ export default function CustomTable<T>({
                 key={rowIndex}
                 className={rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"}
               >
+                {addCheckbox && (
+                  <TableCell>
+                    <Checkbox
+                      onCheckedChange={(checked) =>
+                        toggleColumnCheck(checked as boolean, row.id)
+                      }
+                      checked={selectedRowIds.has(row.id)}
+                    />
+                  </TableCell>
+                )}
                 {columns.map((column, colIndex) => {
                   return (
-                    <>
-                      <TableCell
-                        key={colIndex}
-                        className={column.className}
-                        style={{ textAlign: column.align || "left" }}
-                      >
-                        {colIndex === 0 && addCheckbox ? (
-                          <Checkbox />
-                        ) : column.Render ? (
-                          column.Render(
+                    <TableCell
+                      key={colIndex}
+                      className={column.className}
+                      style={{ textAlign: column.align || "left" }}
+                    >
+                      {column.Render
+                        ? column.Render(
                             row,
                             rowIndex,
                             relativeRowNumber + rowIndex,
                           )
-                        ) : column.accessor ? (
-                          (row as any)[column.accessor]
-                        ) : null}
-                      </TableCell>
-                    </>
+                        : column.accessor
+                        ? (row as any)[column.accessor]
+                        : null}
+                    </TableCell>
                   );
                 })}
               </TableRow>
@@ -103,7 +146,10 @@ export default function CustomTable<T>({
 
       <div className='mt-4'>
         {!isLoading && paginationDetails && (
-          <CustomPagination paginationDetails={paginationDetails} />
+          <CustomPagination
+            selectedRowsCount={selectedRowIds.size}
+            paginationDetails={paginationDetails}
+          />
         )}
       </div>
     </div>

@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import GroupService, { GroupDetails } from "@/service/GroupService";
 import UserService, { UserDetails } from "@/service/UserService";
 import { SupabaseErrorCodes } from "@/supabase/init";
-import { Trash2, UserRoundMinus, UserRoundPlus } from "lucide-react";
+import { Loader, Trash2, UserRoundMinus, UserRoundPlus } from "lucide-react";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -187,7 +187,9 @@ export default function GroupModal({
             <Label className='font-medium text-gray-600'>Tələbələr</Label>
             <div className='mt-2 space-y-2 max-h-48 overflow-y-auto border p-2 rounded bg-white'>
               {isLoadingStudents ? (
-                <p className='text-sm text-gray-500 italic'>Yüklənir...</p>
+                <div className='flex justify-center items-center'>
+                  <Loader className='animate-spin' />
+                </div>
               ) : students && students.length > 0 ? (
                 students.map((studentDetails: UserDetails) => (
                   <div

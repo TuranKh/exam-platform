@@ -28,6 +28,7 @@ import toast from "react-hot-toast";
 import { useQuery } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Exam.scss";
+import ExamService from "@/service/ExamService";
 
 interface Question {
   id: string;
@@ -136,6 +137,7 @@ export default function Exam() {
     if (error) {
       toast.error("Sualları təsdiq edərkən xəta baş verdi!");
     } else {
+      const answers = await ExamService.getExamAnswers(examDetails.id);
       navigate("/available-exams");
     }
   }
@@ -207,6 +209,13 @@ export default function Exam() {
     });
   };
 
+  const prefetchImage = async function (pageNumber: number) {
+    const imageUrl = questions[pageNumber - 1].filePath;
+    const data = await StorageService.getFile(imageUrl as string);
+    const img = new Image();
+    img.src = data.publicUrl as string;
+  };
+
   return (
     <>
       {examDetails?.duration && (
@@ -270,7 +279,10 @@ export default function Exam() {
                       const isFlagged = questions[page - 1]?.flagged;
                       return (
                         <>
-                          <PaginationItem key={page}>
+                          <PaginationItem
+                            onMouseOver={() => prefetchImage(page)}
+                            key={page}
+                          >
                             <PaginationLink
                               href='#'
                               className={`${

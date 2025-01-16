@@ -69,6 +69,15 @@ export default class ExamService {
     return result.data?.[0];
   }
 
+  static async getExamAnswers(examId: number) {
+    const result: { data: [string] } = await supabase
+      .from("exams")
+      .select("answers")
+      .eq("id", examId);
+
+    return result.data?.[0];
+  }
+
   static async getAllForSelect() {
     const result = await supabase.from("exams").select(`
       label:name, 

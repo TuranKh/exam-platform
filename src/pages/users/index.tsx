@@ -1,4 +1,5 @@
 import CustomTable, { Column } from "@/components/CustomtTable";
+import { FormFieldType, InputDetails } from "@/components/FormBuilder";
 import Search from "@/components/Search";
 import {
   Select,
@@ -9,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "@/components/ui/tabs";
 import useFilter, { Filter } from "@/hooks/useFilter";
 import usePagination from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
@@ -18,8 +19,6 @@ import UserService, { UserDetails } from "@/service/UserService";
 import { useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery } from "react-query";
-import Groups from "../groups";
-import { FormFieldType, InputDetails } from "@/components/FormBuilder";
 
 export type UsedFilters = Pick<
   UserDetails,
@@ -185,11 +184,6 @@ const inputs: InputDetails[] = [
   {
     key: "surname",
     label: "Soyad",
-    type: FormFieldType.Text,
-  },
-  {
-    key: "patronymic",
-    label: "Ata adı",
     type: FormFieldType.Text,
   },
   {

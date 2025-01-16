@@ -13,10 +13,12 @@ import { useMemo } from "react";
 interface CustomPaginationProps {
   paginationDetails: PaginationDetails;
   useEllipsis?: boolean;
+  selectedRowsCount: number;
 }
 
 export default function CustomPagination({
   paginationDetails,
+  selectedRowsCount,
 }: CustomPaginationProps) {
   const totalPages = useMemo(() => {
     return Math.ceil(
@@ -105,7 +107,7 @@ export default function CustomPagination({
         <PaginationItem>
           <PaginationNext
             href='#'
-            hidden={paginationDetails.page === totalPages}
+            hidden={paginationDetails.page + 1 === totalPages}
             onClick={(e) => {
               e.preventDefault();
               if (paginationDetails.page < totalPages) {
@@ -114,6 +116,14 @@ export default function CustomPagination({
             }}
           />
         </PaginationItem>
+        {selectedRowsCount !== 0 && (
+          <p className='text-sm font-medium'>
+            {paginationDetails.totalRowsNumber === selectedRowsCount
+              ? `Bütün sətirlər seçilib (${selectedRowsCount})`
+              : `${paginationDetails.totalRowsNumber}-dən ${selectedRowsCount} sətir
+          seçildi`}
+          </p>
+        )}
       </PaginationContent>
     </Pagination>
   );

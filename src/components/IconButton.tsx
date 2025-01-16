@@ -28,7 +28,7 @@ export default function IconButton({
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
       onClick={onClick}
       type='button'
-      className={`p-1 rounded-50 text-primary-foreground shadow-md  focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${className} ${colorDetails}`}
+      className={`p-1 rounded-50 text-primary-foreground rounded-md shadow-md  focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${className} ${colorDetails}`}
     >
       {children}
     </motion.button>

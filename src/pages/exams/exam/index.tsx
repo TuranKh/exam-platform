@@ -253,8 +253,7 @@ export default function Exam() {
   }
 
   const deleteQuestions = function () {
-    setActiveDialog(AvailableDialogs.Confirmation);
-    // setQuestions([]);
+    setQuestions([]);
   };
 
   const onManualFileDrop = function (event: React.DragEvent<HTMLDivElement>) {
@@ -476,7 +475,7 @@ const SortableItem = React.memo(function SortableItem({
         className='question-image'
       />
       {imageLoading && (
-        <div className='flex justify-center items-center h-24'>
+        <div className='flex justify-center items-center h-60'>
           <Loader className='animate-spin' />
         </div>
       )}

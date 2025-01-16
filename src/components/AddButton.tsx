@@ -10,7 +10,7 @@ export default function AddButton(
   return (
     <button
       {...props}
-      className={`${props.className} absolute top-4 right-4 bg-primary p-2`}
+      className={`${props.className} absolute top-4 right-4 bg-primary p-2 rounded-md`}
     >
       <BadgePlus color='white' />
     </button>
