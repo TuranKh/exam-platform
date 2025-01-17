@@ -116,14 +116,6 @@ export default function CustomPagination({
             }}
           />
         </PaginationItem>
-        {selectedRowsCount !== 0 && (
-          <p className='text-sm font-medium'>
-            {paginationDetails.totalRowsNumber === selectedRowsCount
-              ? `Bütün sətirlər seçilib (${selectedRowsCount})`
-              : `${paginationDetails.totalRowsNumber}-dən ${selectedRowsCount} sətir
-          seçildi`}
-          </p>
-        )}
       </PaginationContent>
     </Pagination>
   );

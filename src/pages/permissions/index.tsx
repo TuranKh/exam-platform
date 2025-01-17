@@ -12,7 +12,6 @@ import { BadgeMinus, BadgePlus, CircleArrowOutUpRight } from "lucide-react";
 import { useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
-import { Link } from "react-router-dom";
 
 export type UserExamFilters = {
   groupName: string;
@@ -228,10 +227,10 @@ const staticColumns: Column<UserExamDetails>[] = [
     align: "left",
     Render: (data: UserExamDetails) => {
       return (
-        <Link className='flex items-center gap-2' to={`/exams/${data.examId}`}>
+        <a target="_blank" className='flex items-center gap-2' href={`/exams/${data.examId}`}>
           {data.exams?.name}
           <CircleArrowOutUpRight size={16} />
-        </Link>
+        </a>
       );
     },
   },

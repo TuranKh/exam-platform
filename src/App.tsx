@@ -18,6 +18,10 @@ const router = createBrowserRouter([
     element: <AuthPage />,
   },
   {
+    path: "/",
+    element: <AuthPage />,
+  },
+  {
     path: "/profile",
     element: (
       <ProtectedRouter>
@@ -67,7 +71,7 @@ const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <AuthPage />,
+    element: <NotFound />,
   },
 ]);
 

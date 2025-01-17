@@ -6,11 +6,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { motion } from "framer-motion";
 import { PaginationDetails } from "@/hooks/usePagination";
 import { Loader } from "lucide-react";
 import { ReactNode, useMemo, useState } from "react";
 import CustomPagination from "./CustomPagination";
 import { Checkbox } from "./ui/checkbox";
+import BulkActions from "./BulkActions";
 
 interface CustomTableProps<T extends { id: number }> {
   columns: Column<T>[];
@@ -34,7 +36,6 @@ export default function CustomTable<T extends { id: number }>({
   const [selectedRowIds, setSelectedRowIds] = useState<Set<number>>(new Set());
 
   const toggleSelectAll = function (checkboxValue: boolean) {
-    console.log(checkboxValue);
     if (checkboxValue) {
       setSelectedRowIds((current) => {
         const arr = [...current, ...data.map((details) => details.id)];
@@ -46,6 +47,9 @@ export default function CustomTable<T extends { id: number }>({
   };
 
   const allSelected = useMemo(() => {
+    if (paginationDetails.totalRowsNumber === 0) {
+      return false;
+    }
     return selectedRowIds.size === paginationDetails.totalRowsNumber;
   }, [paginationDetails.totalRowsNumber, selectedRowIds]);
 
@@ -152,6 +156,17 @@ export default function CustomTable<T extends { id: number }>({
           />
         )}
       </div>
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={
+          selectedRowIds.size
+            ? { opacity: 1, height: "auto" }
+            : { opacity: 0, height: 0 }
+        }
+        transition={{ duration: 0.5 }}
+      >
+        <BulkActions count={selectedRowIds.size} />
+      </motion.div>
     </div>
   );
 }
