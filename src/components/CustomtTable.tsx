@@ -9,7 +9,7 @@ import {
 import { motion } from "framer-motion";
 import { PaginationDetails } from "@/hooks/usePagination";
 import { Loader } from "lucide-react";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactElement, ReactNode, useMemo, useState } from "react";
 import CustomPagination from "./CustomPagination";
 import { Checkbox } from "./ui/checkbox";
 import BulkActions from "./BulkActions";
@@ -21,6 +21,7 @@ interface CustomTableProps<T extends { id: number }> {
   paginationDetails: PaginationDetails;
   isLoading?: boolean;
   addCheckbox?: boolean;
+  bulkActions?: (rowIds: Set<number>) => ReactElement;
 }
 
 export default function CustomTable<T extends { id: number }>({
@@ -29,6 +30,7 @@ export default function CustomTable<T extends { id: number }>({
   isLoading = false,
   paginationDetails,
   addCheckbox = false,
+  bulkActions,
 }: CustomTableProps<T>) {
   const relativeRowNumber = useMemo(() => {
     return paginationDetails.page * paginationDetails.perPage + 1;
@@ -47,11 +49,12 @@ export default function CustomTable<T extends { id: number }>({
   };
 
   const allSelected = useMemo(() => {
-    if (paginationDetails.totalRowsNumber === 0) {
+    const rowsNumber = paginationDetails.totalRowsNumber || data.length;
+    if (rowsNumber === 0) {
       return false;
     }
-    return selectedRowIds.size === paginationDetails.totalRowsNumber;
-  }, [paginationDetails.totalRowsNumber, selectedRowIds]);
+    return selectedRowIds.size === rowsNumber;
+  }, [paginationDetails.totalRowsNumber, selectedRowIds, data]);
 
   const toggleColumnCheck = function (checked: boolean, rowId: number) {
     setSelectedRowIds((current) => {
@@ -65,8 +68,12 @@ export default function CustomTable<T extends { id: number }>({
     });
   };
 
+  const clearSelection = function () {
+    setSelectedRowIds(new Set());
+  };
+
   return (
-    <div>
+    <div className='custom-table'>
       <Table>
         <TableHeader>
           <TableRow>
@@ -165,7 +172,11 @@ export default function CustomTable<T extends { id: number }>({
         }
         transition={{ duration: 0.5 }}
       >
-        <BulkActions count={selectedRowIds.size} />
+        <BulkActions
+          additionalBulkActions={bulkActions}
+          clearSelection={clearSelection}
+          rowIds={selectedRowIds}
+        />
       </motion.div>
     </div>
   );

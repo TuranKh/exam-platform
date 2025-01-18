@@ -8,7 +8,13 @@ import usePagination, { initialPage } from "@/hooks/usePagination";
 import ExamService from "@/service/ExamService";
 import GroupService from "@/service/GroupService";
 import UserExamsService, { UserExamDetails } from "@/service/UserExamsService";
-import { BadgeMinus, BadgePlus, CircleArrowOutUpRight } from "lucide-react";
+import {
+  BadgeMinus,
+  BadgePlus,
+  Ban,
+  CircleArrowOutUpRight,
+  HandCoins,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
@@ -31,8 +37,10 @@ export default function Permissions() {
     refetch,
   } = useQuery({
     queryKey: ["permissions-exams", filters, paginationDetails.page],
-    queryFn: () => {
-      return UserExamsService.getAll(filters, paginationDetails);
+    queryFn: async () => {
+      const data = await UserExamsService.getAll(filters, paginationDetails);
+      paginationDetails.setTotalRowsNumber(data.count);
+      return data;
     },
   });
 
@@ -51,8 +59,14 @@ export default function Permissions() {
   });
 
   const handleAccessToggle = useCallback(
-    async (id: number, hasAccess: boolean) => {
-      const { error } = await UserExamsService.changeUserAccess(id, hasAccess);
+    async (id: number | number[], hasAccess: boolean) => {
+      const isMultipleIds = Array.isArray(id);
+      let error = null;
+      if (isMultipleIds) {
+        error = (await UserExamsService.changeUsersAccess(id, hasAccess)).error;
+      } else {
+        error = (await UserExamsService.changeUserAccess(id, hasAccess)).error;
+      }
       if (error) {
         toast.error("İcazə verərkən xəta baş verdi");
         return;
@@ -157,6 +171,41 @@ export default function Permissions() {
     resetPagination();
   };
 
+  const allowAll = function (ids: Set<number>) {
+    const idsArr = Array.from(ids);
+    handleAccessToggle(idsArr, true);
+  };
+
+  const prohibitAll = function (ids: Set<number>) {
+    const idsArr = Array.from(ids);
+    handleAccessToggle(idsArr, false);
+  };
+
+  const bulkActions = useCallback((rowIds: Set<number>) => {
+    return (
+      <>
+        <div className='h-6 w-px bg-gray-300' />
+        <button
+          onClick={() => allowAll(rowIds)}
+          type='button'
+          className='flex items-center duration-100 space-x-2 text-green-600 hover:text-green-700'
+        >
+          <HandCoins className='h-5 w-5' />
+          <span className='text-sm font-medium'>İcazə ver</span>
+        </button>
+        <div className='h-6 w-px bg-gray-300' />
+        <button
+          onClick={() => prohibitAll(rowIds)}
+          type='button'
+          className='flex items-center duration-100 space-x-2 text-red-600 hover:text-red-700'
+        >
+          <Ban className='h-5 w-5' />
+          <span className='text-sm font-medium'>İcazəsini al</span>
+        </button>
+      </>
+    );
+  }, []);
+
   return (
     <div className='p-6 space-y-4'>
       <h1 className='text-2xl font-bold'>İcazələr</h1>
@@ -179,6 +228,7 @@ export default function Permissions() {
         isLoading={isLoading}
         columns={columns}
         data={exams?.permissions || []}
+        bulkActions={bulkActions}
       />
     </div>
   );
@@ -227,7 +277,11 @@ const staticColumns: Column<UserExamDetails>[] = [
     align: "left",
     Render: (data: UserExamDetails) => {
       return (
-        <a target="_blank" className='flex items-center gap-2' href={`/exams/${data.examId}`}>
+        <a
+          target='_blank'
+          className='flex items-center gap-2'
+          href={`/exams/${data.examId}`}
+        >
           {data.exams?.name}
           <CircleArrowOutUpRight size={16} />
         </a>

@@ -84,8 +84,16 @@ export default class UserExamsService {
     const { error } = await supabase
       .from("user-exams")
       .update({ hasAccess: permission })
-      .eq("id", rowId)
-      .select("*");
+      .eq("id", rowId);
+
+    return { error };
+  }
+
+  static async changeUsersAccess(rowIds: number[], permission: boolean) {
+    const { error } = await supabase
+      .from("user-exams")
+      .update({ hasAccess: permission })
+      .in("id", rowIds);
 
     return { error };
   }

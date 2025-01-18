@@ -16,6 +16,8 @@ import usePagination from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
 import GroupService from "@/service/GroupService";
 import UserService, { UserDetails } from "@/service/UserService";
+import { PostgrestError } from "@supabase/supabase-js";
+import { CalendarMinusIcon, CalendarPlusIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery } from "react-query";
@@ -29,7 +31,11 @@ export default function UsersComponent() {
   const paginationDetails = usePagination();
   const { filters, resetFilters, setFilters } = useFilter<UsedFilters>();
 
-  const { data: allUsers, refetch } = useQuery({
+  const {
+    data: allUsers,
+    refetch,
+    isLoading,
+  } = useQuery({
     queryFn: () => {
       return UserService.getAllUsersDetails(filters);
     },
@@ -44,16 +50,19 @@ export default function UsersComponent() {
   const handleStatusToggle = useCallback(
     async (userId: number, checked: boolean) => {
       const { error } = await UserService.changeUserAccess(userId, checked);
-
-      if (error) {
-        toast.error("İcazə verərkən xəta baş verdi");
-      } else {
-        toast.success("Uğurla icazə dəyişdirildi");
-        refetch();
-      }
+      statusChangeErrorHandler(error);
     },
     [refetch],
   );
+
+  const statusChangeErrorHandler = function (error: PostgrestError | null) {
+    if (error) {
+      toast.error("İcazə verərkən xəta baş verdi");
+    } else {
+      toast.success("Uğurla icazə dəyişdirildi");
+      refetch();
+    }
+  };
 
   const userColumns: Column<UserDetails>[] = useMemo(
     () => [
@@ -150,12 +159,50 @@ export default function UsersComponent() {
     refetch();
   };
 
+  const removeAllFromWaitingList = async function (rowIds: Set<number>) {
+    const ids = Array.from(rowIds);
+    const { error } = await UserService.changeUsersAccess(ids, false);
+    statusChangeErrorHandler(error);
+  };
+
+  const addAllFromWaitingList = async function (rowIds: Set<number>) {
+    const ids = Array.from(rowIds);
+    const { error } = await UserService.changeUsersAccess(ids, true);
+    statusChangeErrorHandler(error);
+  };
+
+  const bulkActions = useCallback((rowIds: Set<number>) => {
+    return (
+      <>
+        <div className='h-6 w-px bg-gray-300' />
+        <button
+          onClick={() => removeAllFromWaitingList(rowIds)}
+          type='button'
+          className='flex items-center duration-100 space-x-2 text-blue-600 hover:text-blue-700'
+        >
+          <CalendarPlusIcon className='h-5 w-5' />
+          <span className='text-sm font-medium'>Gözləmədən çıxar</span>
+        </button>
+        <div className='h-6 w-px bg-gray-300' />
+        <button
+          onClick={() => addAllFromWaitingList(rowIds)}
+          type='button'
+          className='flex items-center duration-100 space-x-2 text-red-600 hover:text-red-700'
+        >
+          <CalendarMinusIcon className='h-5 w-5' />
+          <span className='text-sm font-medium'>Gözləməyə al</span>
+        </button>
+      </>
+    );
+  }, []);
+
   return (
     <div className='flex-1 space-y-4 p-8 pt-6'>
       <Tabs defaultValue='management' className='space-y-4'>
         <Search<UsedFilters>
           onReset={onReset}
           onSearch={onSearch}
+          isLoading={isLoading}
           formDetails={{
             inputs,
             options: {
@@ -166,9 +213,11 @@ export default function UsersComponent() {
         />
 
         <CustomTable
+          addCheckbox
           paginationDetails={paginationDetails}
           columns={userColumns}
           data={allUsers || []}
+          bulkActions={bulkActions}
         />
       </Tabs>
     </div>

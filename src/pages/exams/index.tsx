@@ -117,6 +117,7 @@ export default function Exams() {
       <Search<ExamFilters>
         onSearch={onSearch}
         onReset={onReset}
+        isLoading={isLoading}
         formDetails={{
           inputs,
           options: {
@@ -126,6 +127,7 @@ export default function Exams() {
         }}
       />
       <CustomTable
+        addCheckbox
         paginationDetails={paginationDetails}
         isLoading={isLoading}
         columns={columns}

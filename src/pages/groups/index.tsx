@@ -72,6 +72,7 @@ export default function Groups() {
       <Search<GroupFilters>
         onReset={onReset}
         onSearch={onSearch}
+        isLoading={isLoading}
         formDetails={{
           inputs: groupInputs,
           options: {
@@ -81,6 +82,7 @@ export default function Groups() {
         }}
       />
       <CustomTable
+        addCheckbox
         paginationDetails={paginationDetails}
         columns={columns}
         data={allGroups || []}

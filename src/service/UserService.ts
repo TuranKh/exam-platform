@@ -82,6 +82,15 @@ export default class UserService {
     return { error };
   }
 
+  static async changeUsersAccess(rowIds: number[], isPending: boolean) {
+    const { error } = await supabase
+      .from("users")
+      .update({ isPending })
+      .in("id", rowIds);
+
+    return { error };
+  }
+
   static async addUserToPendingList(email: string, fullname: string) {
     const [name, surname] = fullname.split(" ");
     const { error } = await supabase

@@ -81,6 +81,7 @@ export default function UserExams() {
       <Search<ExamFilters>
         onSearch={onSearch}
         onReset={onReset}
+        isLoading={isLoading}
         formDetails={{
           inputs,
           options: {
