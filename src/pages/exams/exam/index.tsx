@@ -1,14 +1,11 @@
-import {
-  BookOpen,
-  CircleChevronRight,
-  Eraser,
-  GripVertical,
-  Loader,
-  Upload,
-  X,
-} from "lucide-react";
-import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
-import "./Exam.scss";
+import CustomSelect from "@/components/FormBuilder/components/CustomSelect";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import DateUtils from "@/lib/date-utils";
+import ExamService from "@/service/ExamService";
+import StorageService from "@/service/StorageService";
+import { useVisualStore } from "@/store/VisualStore";
 import {
   closestCenter,
   DndContext,
@@ -23,18 +20,21 @@ import {
   SortableContext,
   useSortable,
 } from "@dnd-kit/sortable";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import DateUtils from "@/lib/date-utils";
-import ExamService from "@/service/ExamService";
-import StorageService from "@/service/StorageService";
-import { AvailableDialogs, useVisualStore } from "@/store/VisualStore";
 import { CSS } from "@dnd-kit/utilities";
+import {
+  BookOpen,
+  CircleChevronRight,
+  Eraser,
+  GripVertical,
+  Loader,
+  Upload,
+  X,
+} from "lucide-react";
+import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import CustomSelect from "@/components/FormBuilder/components/CustomSelect";
+import "./Exam.scss";
 
 interface Question {
   id: string;
@@ -300,6 +300,7 @@ export default function Exam() {
                 placeholder='İmtahanın müddəti (dəq)'
                 type='number'
               />
+              {/* <AddQuestion /> */}
             </div>
 
             <form
@@ -317,7 +318,7 @@ export default function Exam() {
                       <div className='flex flex-col items-center space-y-2'>
                         <Upload className='w-6 h-6 text-gray-400' />
                         <span className='text-sm text-gray-400'>
-                          Sual yükləyin
+                          Şəkil yükləyin
                         </span>
                       </div>
                       <input
