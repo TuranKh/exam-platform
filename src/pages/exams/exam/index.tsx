@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import DateUtils from "@/lib/date-utils";
 import ExamService from "@/service/ExamService";
 import StorageService from "@/service/StorageService";
-import { useVisualStore } from "@/store/VisualStore";
 import {
   closestCenter,
   DndContext,
@@ -52,7 +51,6 @@ export default function Exam() {
     name: string;
     duration: number;
   }>({});
-  const { setActiveDialog } = useVisualStore();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [creationAllowed, setCreationAllowed] = useState(false);
 
@@ -372,9 +370,13 @@ export default function Exam() {
                   Sualları sil {questions.length ? `(${questions.length})` : ""}
                   <Eraser />
                 </Button>
-                <Button type='submit' disabled={!creationAllowed}>
+                <Button type='submit' disabled={!creationAllowed || isLoading}>
                   {isEditMode ? "Yadda saxla" : "Yarat"}
-                  <CircleChevronRight />
+                  {isLoading ? (
+                    <Loader className='animate-spin' />
+                  ) : (
+                    <CircleChevronRight />
+                  )}
                 </Button>
               </div>
             </form>

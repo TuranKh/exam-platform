@@ -8,6 +8,7 @@ import useFilter, { Filter } from "@/hooks/useFilter";
 import usePagination, { initialPage } from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
 import ExamService, { ExamDetails, ExamFilters } from "@/service/ExamService";
+import { Eraser, ShieldBan, ShieldCheck } from "lucide-react";
 import { useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
@@ -38,8 +39,8 @@ export default function Exams() {
   });
 
   const handleStatusToggle = useCallback(
-    async (id: number, isActive: boolean) => {
-      const error = await ExamService.updateExamStatus(id, isActive);
+    async (ids: number[], isActive: boolean) => {
+      const error = await ExamService.updateExamsStatus(ids, isActive);
       if (error) {
         toast.error("Status dəyişərkən xəta baş verdi");
       }
@@ -48,7 +49,6 @@ export default function Exams() {
       queryClient.invalidateQueries({
         queryKey: ["all-exams"],
       });
-      // all-users-details
     },
     [queryClient],
   );
@@ -63,7 +63,7 @@ export default function Exams() {
         Render: (data: ExamDetails) => (
           <Switch
             checked={data.isActive}
-            onClick={() => handleStatusToggle(data.id, !data.isActive)}
+            onClick={() => handleStatusToggle([data.id], !data.isActive)}
             className='mx-auto'
           />
         ),
@@ -74,17 +74,7 @@ export default function Exams() {
         align: "center",
         Render: (data: ExamDetails) => (
           <ActionsDropdown
-            onDelete={async () => {
-              const error = await ExamService.deleteExam(data.id);
-
-              if (error) {
-                return;
-              }
-              toast.success("İmtahan uğurla silindi");
-              queryClient.invalidateQueries({
-                queryKey: ["all-exams"],
-              });
-            }}
+            onDelete={() => deleteExams([data.id])}
             onEdit={() => {
               navigate(`/exams/${data.id}`);
             }}
@@ -93,6 +83,18 @@ export default function Exams() {
       },
     ];
   }, [handleStatusToggle, queryClient, navigate]);
+
+  const deleteExams = async function (ids: number[]) {
+    const error = await ExamService.deleteExams(ids);
+
+    if (error) {
+      return;
+    }
+    toast.success("İmtahan uğurla silindi");
+    queryClient.invalidateQueries({
+      queryKey: ["all-exams"],
+    });
+  };
 
   const onSearch = function (params: Filter<ExamFilters>) {
     setFilters(params);
@@ -107,6 +109,41 @@ export default function Exams() {
     resetFilters();
     refetch();
   };
+
+  const bulkActions = useCallback((rowIds: Set<number>) => {
+    const ids = Array.from(rowIds);
+    return (
+      <>
+        <div className='h-6 w-px bg-gray-300' />
+        <button
+          onClick={() => handleStatusToggle(ids, true)}
+          type='button'
+          className='flex items-center duration-100 space-x-2 text-green-600 hover:text-green-700'
+        >
+          <ShieldCheck className='h-5 w-5' />
+          <span className='text-sm font-medium'>Aktiv et</span>
+        </button>
+        <div className='h-6 w-px bg-gray-300' />
+        <button
+          onClick={() => handleStatusToggle(ids, false)}
+          type='button'
+          className='flex items-center duration-100 space-x-2 text-red-600 hover:text-red-700'
+        >
+          <ShieldBan className='h-5 w-5' />
+          <span className='text-sm font-medium'>Deaktiv et</span>
+        </button>
+        <div className='h-6 w-px bg-gray-300' />
+        <button
+          onClick={() => deleteExams(ids)}
+          type='button'
+          className='flex items-center duration-100 space-x-2 text-red-600 hover:text-red-700'
+        >
+          <Eraser className='h-5 w-5' />
+          <span className='text-sm font-medium'>Sil</span>
+        </button>
+      </>
+    );
+  }, []);
 
   return (
     <div className='p-6 space-y-4'>
@@ -132,6 +169,7 @@ export default function Exams() {
         isLoading={isLoading}
         columns={columns}
         data={exams || []}
+        bulkActions={bulkActions}
       />
     </div>
   );

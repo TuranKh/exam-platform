@@ -32,7 +32,7 @@ export default function GroupModal({
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: students, isLoading: isLoadingStudents } = useQuery({
-    queryKey: ["all-users-details", open],
+    queryKey: ["all-users-details", open, groupData.id],
     queryFn: async () => {
       return UserService.getAllUsersDetails({
         groupId: String(groupData.id),

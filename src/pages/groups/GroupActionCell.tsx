@@ -1,6 +1,7 @@
 import ActionsDropdown from "@/components/ActionsDropdown";
 import type { GroupDetails } from "@/service/GroupService";
 import GroupService from "@/service/GroupService";
+import { useModalStore } from "@/store/ModalStore";
 import toast from "react-hot-toast";
 import { useQueryClient } from "react-query";
 
@@ -14,8 +15,17 @@ export default function GroupActionsCell({
   openDialog,
 }: GroupActionsCellProps) {
   const queryClient = useQueryClient();
+  const { openModal } = useModalStore();
 
   const handleDelete = async () => {
+    openModal({
+      message: "Qrupu silmək istədiyinizdən əminsiniz?",
+      onConfirm: deleteGroup,
+    });
+    return;
+  };
+
+  const deleteGroup = async function () {
     const error = await GroupService.delete(data.id);
 
     if (error) {

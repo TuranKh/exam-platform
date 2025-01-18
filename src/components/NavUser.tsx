@@ -123,6 +123,10 @@ export default function NavUser() {
                 Ödəniş
               </DropdownMenuItem>
               <DropdownMenuItem>
+                <CreditCard />
+                Animasiyalar
+              </DropdownMenuItem>
+              <DropdownMenuItem>
                 <Bell />
                 Bildirişlər
               </DropdownMenuItem>

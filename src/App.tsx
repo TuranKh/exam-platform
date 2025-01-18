@@ -1,16 +1,16 @@
 import { Toaster } from "react-hot-toast";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
+import { ConfirmationDialog } from "./components/ConfirmationDialog";
 import Layout from "./components/Layout";
-import Modals from "./components/Modals";
 import ProtectedRouter from "./components/ProtectedRouter";
 import { sidebarRoutes, UserRole } from "./config/sidebar";
 import AuthPage from "./pages/auth";
 import Exam from "./pages/exams/exam";
 import NotFound from "./pages/not-found";
 import Pending from "./pages/pending";
-import UserExam from "./pages/user-exams/exam";
 import Profile from "./pages/profile";
+import UserExam from "./pages/user-exams/exam";
 
 const router = createBrowserRouter([
   {
@@ -91,7 +91,7 @@ function App() {
         position='bottom-right'
         reverseOrder={false}
       />
-      <Modals />
+      <ConfirmationDialog />
     </>
   );
 }

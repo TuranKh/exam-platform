@@ -6,21 +6,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useModalStore } from "@/store/ModalStore";
 import { Button } from "./ui/button";
 
-export function ConfirmationDialog({ open }) {
+export function ConfirmationDialog() {
+  const { isModalOpen, message, onConfirm, onReject, closeModal } =
+    useModalStore();
+
+  const onUserConfirm = function () {
+    onConfirm();
+    closeModal();
+  };
+
   return (
-    <AlertDialog open={open}>
+    <AlertDialog open={isModalOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Əminsiniz?</AlertDialogTitle>
+          <AlertDialogTitle>{message}</AlertDialogTitle>
           <AlertDialogDescription>
             Etdiyiniz əməliyyat geriyə döndərilə bilməz
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <Button>Xeyr</Button>
-          <Button variant='destructive'>Bəli</Button>
+          <Button onClick={onReject}>Xeyr</Button>
+          <Button variant='destructive' onClick={onUserConfirm}>
+            Bəli
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

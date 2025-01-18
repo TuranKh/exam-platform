@@ -130,18 +130,18 @@ export default class ExamService {
     return (await supabase.from("user-specific-exams").select("*")).data;
   }
 
-  static async updateExamStatus(id: number, isActive: boolean) {
+  static async updateExamsStatus(ids: number, isActive: boolean) {
     const { error } = await supabase
       .from("exams")
       .update({ isActive })
-      .eq("id", id)
+      .in("id", ids)
       .select("*");
 
     return error;
   }
 
-  static async deleteExam(id: number) {
-    const { error } = await supabase.from("exams").delete().eq("id", id);
+  static async deleteExams(ids: number[]) {
+    const { error } = await supabase.from("exams").delete().in("id", ids);
     return error;
   }
 }
