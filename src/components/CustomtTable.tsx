@@ -38,6 +38,11 @@ export default function CustomTable<T extends { id: number }>({
   const [selectedRowIds, setSelectedRowIds] = useState<Set<number>>(new Set());
 
   const toggleSelectAll = function (checkboxValue: boolean) {
+    if (allSelected === "indeterminate") {
+      setSelectedRowIds(new Set());
+      return;
+    }
+
     if (checkboxValue) {
       setSelectedRowIds((current) => {
         const arr = [...current, ...data.map((details) => details.id)];
@@ -53,7 +58,16 @@ export default function CustomTable<T extends { id: number }>({
     if (rowsNumber === 0) {
       return false;
     }
-    return selectedRowIds.size === rowsNumber;
+    const allSelected = selectedRowIds.size === rowsNumber;
+    if (allSelected) {
+      return true;
+    }
+
+    if (selectedRowIds.size) {
+      return "indeterminate";
+    }
+
+    return false;
   }, [paginationDetails.totalRowsNumber, selectedRowIds, data]);
 
   const toggleColumnCheck = function (checked: boolean, rowId: number) {
@@ -118,6 +132,7 @@ export default function CustomTable<T extends { id: number }>({
                         toggleColumnCheck(checked as boolean, row.id)
                       }
                       checked={selectedRowIds.has(row.id)}
+                      // checked={"indeterminate"}
                     />
                   </TableCell>
                 )}
