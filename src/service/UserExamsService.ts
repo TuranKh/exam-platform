@@ -66,8 +66,8 @@ export default class UserExamsService {
   `,
         { count: "exact" },
       )
-      .order("hasAccess", { ascending: false })
       .order("id")
+      .order("hasAccess", { ascending: false })
       .eq("users.isAdmin", false);
 
     const finalQuery = RequestHelper.applyFilters(initialQuery, filters);
