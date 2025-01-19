@@ -1,4 +1,3 @@
-import ActionsDropdown from "@/components/ActionsDropdown";
 import CustomTable, { Column } from "@/components/CustomtTable";
 import { FormFieldType, InputDetails } from "@/components/FormBuilder";
 import Search from "@/components/Search";
@@ -10,6 +9,7 @@ import ExamService, {
   ExamFilters,
   ExamState,
 } from "@/service/ExamService";
+import { CirclePlay } from "lucide-react";
 import { useMemo } from "react";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
@@ -43,15 +43,15 @@ export default function UserExams() {
         accessor: "action",
         align: "center",
         Render: (data: ExamDetails) => {
-          const isExamEnd = data.examState === ExamState.Ended;
           return (
-            !isExamEnd && (
-              <ActionsDropdown
-                onStart={() => {
+            data.attemptsLeft > 0 && (
+              <CirclePlay
+                size={20}
+                color='hsl(var(--primary))'
+                className='cursor-pointer transition-all'
+                onClick={() => {
                   navigate(`${data.id}`);
                 }}
-                // title={data.startDate ? "Davam et" : "Başla"}
-                title={ExamStateMapper[data.examState]}
               />
             )
           );

@@ -47,11 +47,13 @@ export default function Exam() {
   const [examDetails, setExamDetails] = useState<{
     name: string;
     duration: number;
+    id: number;
   }>({});
   const [questions, setQuestions] = useState<
     Array<Omit<Question, "correctAnswer"> & { flagged?: boolean }>
   >([]);
   const [answers, setAnswers] = useState<Answer>({});
+  const [examAnswers, setExamAnswers] = useState<Answer | null>();
 
   const { data: existingExamDetails, isLoading } = useQuery({
     queryKey: ["get-exam", id],
@@ -89,10 +91,10 @@ export default function Exam() {
         }
         return;
       }
-
       setExamDetails({
         duration: existingExamDetails.duration,
         name: existingExamDetails.name,
+        id: existingExamDetails.examId,
       });
       setQuestions(() => {
         const existingQuestions = JSON.parse(existingExamDetails.questions);
@@ -137,8 +139,8 @@ export default function Exam() {
     if (error) {
       toast.error("Sualları təsdiq edərkən xəta baş verdi!");
     } else {
-      const answers = await ExamService.getExamAnswers(examDetails.id);
-      navigate("/available-exams");
+      const answersResponse = await ExamService.getExamAnswers(examDetails.id);
+      setExamAnswers(JSON.parse(answersResponse.answers));
     }
   }
 
@@ -276,30 +278,54 @@ export default function Exam() {
                 <Pagination>
                   <PaginationContent>
                     {pageNumbers.map((page: number) => {
-                      const isFlagged = questions[page - 1]?.flagged;
+                      const currentQuestion = questions[page - 1];
+                      const isFlagged = currentQuestion?.flagged;
+                      const userAnswer = answers[currentQuestion.id];
+                      const correctAnswer = examAnswers?.[currentQuestion.id];
+                      console.log({ userAnswer, correctAnswer });
+                      let className = "";
+
+                      if (correctAnswer) {
+                        if (userAnswer) {
+                          if (userAnswer === correctAnswer) {
+                            className += " correct";
+                          } else {
+                            className += " wrong";
+                          }
+                        } else {
+                          className += " not-answered";
+                        }
+                      } else {
+                        if (userAnswer) {
+                          className += " answered";
+                        } else {
+                          className += " not-answered";
+                        }
+                      }
+
+                      if (isFlagged) {
+                        className += " flagged";
+                      }
+
+                      className.trim();
+
                       return (
-                        <>
-                          <PaginationItem
-                            onMouseOver={() => prefetchImage(page)}
-                            key={page}
+                        <PaginationItem
+                          onMouseOver={() => prefetchImage(page)}
+                          key={page}
+                        >
+                          <PaginationLink
+                            href='#'
+                            className={className}
+                            isActive={page - 1 === paginationDetails.page}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              paginationDetails.setPage(page - 1);
+                            }}
                           >
-                            <PaginationLink
-                              href='#'
-                              className={`${
-                                answers[questions?.[page - 1].id]
-                                  ? "answered"
-                                  : "not-answered"
-                              } ${isFlagged && "flagged"}`}
-                              isActive={page - 1 === paginationDetails.page}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                paginationDetails.setPage((page - 1) as number);
-                              }}
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        </>
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
                       );
                     })}
                   </PaginationContent>

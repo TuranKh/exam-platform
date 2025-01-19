@@ -8,7 +8,12 @@ import useFilter, { Filter } from "@/hooks/useFilter";
 import usePagination, { initialPage } from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
 import ExamService, { ExamDetails, ExamFilters } from "@/service/ExamService";
-import { Eraser, ShieldBan, ShieldCheck } from "lucide-react";
+import {
+  CircleArrowOutUpRight,
+  Eraser,
+  ShieldBan,
+  ShieldCheck,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
@@ -220,6 +225,18 @@ const staticColumns = [
     header: "Adı",
     accessor: "name",
     align: "left",
+    Render: (data: ExamDetails) => {
+      return (
+        <a
+          target='_blank'
+          className='flex items-center gap-2'
+          href={`/exams/${data.id}`}
+        >
+          {data?.name}
+          <CircleArrowOutUpRight size={16} />
+        </a>
+      );
+    },
   },
   {
     header: "Yaradılma tarixi",

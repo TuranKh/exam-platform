@@ -70,7 +70,7 @@ export default class ExamService {
   }
 
   static async getExamAnswers(examId: number) {
-    const result: { data: [string] } = await supabase
+    const result: { data: [{ answers: string }] } = await supabase
       .from("exams")
       .select("answers")
       .eq("id", examId);

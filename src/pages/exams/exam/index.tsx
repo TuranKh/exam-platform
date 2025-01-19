@@ -53,6 +53,7 @@ export default function Exam() {
   }>({});
   const [questions, setQuestions] = useState<Question[]>([]);
   const [creationAllowed, setCreationAllowed] = useState(false);
+  const [imageUploadingLoading, setImageUploadingLoading] = useState(false);
 
   const { data: existingExamDetails, isLoading } = useQuery({
     queryKey: ["get-exam", id],
@@ -151,6 +152,8 @@ export default function Exam() {
   async function editExam() {
     const randomIdentifier = crypto.randomUUID();
     const answers: Record<string, string | null> = {};
+    setImageUploadingLoading(true);
+
     const questionDetails = await Promise.all(
       questions.map(async (questionDetails) => {
         let filePath: string | null | undefined = null;
@@ -186,6 +189,8 @@ export default function Exam() {
       finalExamDetails,
     );
 
+    setImageUploadingLoading(false);
+
     if (requestResult) {
       queryClient.invalidateQueries({
         queryKey: ["get-exam", id],
@@ -205,7 +210,7 @@ export default function Exam() {
         randomIdentifier,
       );
     });
-
+    setImageUploadingLoading(true);
     const fileUploadResult = await Promise.all(requests);
 
     const answers: Record<string, string | null> = {};
@@ -232,10 +237,14 @@ export default function Exam() {
     toast.promise(ExamService.createExam(finalExamDetails), {
       loading: "Yeni imtahan yaranır...",
       success: () => {
+        setImageUploadingLoading(false);
         navigate("/exams");
         return "Yeni imtahan uğurla yaradıldı";
       },
-      error: "Yeni imtahan yaradarkən xəta baş verdi",
+      error: () => {
+        setImageUploadingLoading(false);
+        return "Yeni imtahan yaradarkən xəta baş verdi";
+      },
     });
   }
 
@@ -365,14 +374,17 @@ export default function Exam() {
                   type='button'
                   onClick={deleteQuestions}
                   variant={"destructive"}
-                  disabled={questions.length === 0}
+                  disabled={questions.length === 0 || imageUploadingLoading}
                 >
                   Sualları sil {questions.length ? `(${questions.length})` : ""}
                   <Eraser />
                 </Button>
-                <Button type='submit' disabled={!creationAllowed || isLoading}>
+                <Button
+                  type='submit'
+                  disabled={!creationAllowed || imageUploadingLoading}
+                >
                   {isEditMode ? "Yadda saxla" : "Yarat"}
-                  {isLoading ? (
+                  {imageUploadingLoading ? (
                     <Loader className='animate-spin' />
                   ) : (
                     <CircleChevronRight />
