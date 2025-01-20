@@ -30,7 +30,11 @@ export default function Exams() {
     refetch,
   } = useQuery({
     queryKey: ["all-exams", filters],
-    queryFn: () => ExamService.getAllExams(filters, paginationDetails),
+    queryFn: async () => {
+      const result = await ExamService.getAllExams(filters, paginationDetails);
+      paginationDetails.setTotalRowsNumber(result?.length || 0);
+      return result;
+    },
     cacheTime: 0,
   });
 
