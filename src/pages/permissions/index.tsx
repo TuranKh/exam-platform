@@ -1,6 +1,5 @@
 import CustomTable, { Column } from "@/components/CustomtTable";
 import { FormFieldType, InputDetails } from "@/components/FormBuilder";
-import IconButton from "@/components/IconButton";
 import Search from "@/components/Search";
 import { Switch } from "@/components/ui/switch";
 import useFilter, { Filter } from "@/hooks/useFilter";
@@ -9,11 +8,10 @@ import ExamService from "@/service/ExamService";
 import GroupService from "@/service/GroupService";
 import UserExamsService, { UserExamDetails } from "@/service/UserExamsService";
 import {
-  BadgeMinus,
-  BadgePlus,
   Ban,
   CircleArrowOutUpRight,
   HandCoins,
+  RefreshCcw,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
@@ -91,18 +89,6 @@ export default function Permissions() {
     await refetch();
   };
 
-  const reduceAttemptCount = async function (rowId: number) {
-    const error = await UserExamsService.decrementAttemptsCount(rowId);
-
-    if (error) {
-      toast.error("Cəhd sayını azaldarkən xəta baş verdi");
-      return;
-    }
-
-    toast.success("Cəhd sayı uğurla azaldıldı");
-    await refetch();
-  };
-
   const columns = useMemo(() => {
     return [
       ...staticColumns,
@@ -115,9 +101,32 @@ export default function Permissions() {
             checked={data.hasAccess}
             onClick={() => {
               if (!data.exams.isActive) {
-                toast(`"${data.exams.name}" imtahanı aktiv deyil!`, {
-                  icon: "☢️",
-                });
+                toast(
+                  (t) => {
+                    return (
+                      <span>
+                        "{data.exams.name}" imtahanı aktiv deyil &nbsp;
+                        <Switch
+                          onCheckedChange={async () => {
+                            const error = await ExamService.updateExamsStatus(
+                              [data.examId],
+                              true,
+                            );
+                            if (error) {
+                              toast.error(
+                                "İmtahanı aktivləşdirərkən xəta baş verdi!",
+                              );
+                            }
+                            toast.dismiss(t.id);
+                          }}
+                        />
+                      </span>
+                    );
+                  },
+                  {
+                    icon: "☢️",
+                  },
+                );
               }
 
               handleAccessToggle(data.id, !data.hasAccess);
@@ -127,25 +136,16 @@ export default function Permissions() {
         ),
       },
       {
-        header: "Cəhd sayınə dəyiş",
+        header: "Yenidən icazə ver",
         accessor: "givePermission",
         align: "center",
         Render: (data: UserExamDetails) => {
           return (
-            <div className='flex gap-2 justify-center'>
-              <IconButton
-                variant='secondary'
-                onClick={() => reduceAttemptCount(data.id)}
-              >
-                <BadgeMinus className='text-primary' />
-              </IconButton>
-              <IconButton
-                variant='secondary'
-                onClick={() => addAttemptCount(data.id)}
-              >
-                <BadgePlus className='text-primary' />
-              </IconButton>
-            </div>
+            <RefreshCcw
+              onClick={() => addAttemptCount(data.id)}
+              className='cursor-pointer'
+              color='hsl(var(--primary))'
+            />
           );
         },
       },
@@ -289,11 +289,13 @@ const staticColumns: Column<UserExamDetails>[] = [
     },
   },
   {
-    header: "İştirakçının adı",
+    header: "İştirakçının məlumatları",
     accessor: "participantName",
     align: "left",
     Render: (data: UserExamDetails) =>
-      `${data?.users?.name} ${data?.users?.surname || ""}`,
+      `${data?.users?.name} ${data?.users?.surname || ""} |  ${
+        data?.users?.email
+      }`,
   },
   {
     header: "Qrup",
@@ -308,11 +310,5 @@ const staticColumns: Column<UserExamDetails>[] = [
     align: "center",
     Render: (data: UserExamDetails) =>
       data.isFinished && data.score !== null ? `${data.score}%` : "-",
-  },
-  {
-    header: "Cəhd sayı",
-    accessor: "totalGivenAttemptsCount",
-    align: "center",
-    Render: (data: UserExamDetails) => data.totalGivenAttemptsCount,
   },
 ];

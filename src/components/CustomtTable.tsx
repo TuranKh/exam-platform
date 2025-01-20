@@ -141,17 +141,27 @@ export default function CustomTable<T extends { id: number }>({
                     <TableCell
                       key={colIndex}
                       className={column.className}
-                      style={{ textAlign: column.align || "left" }}
+                      style={{
+                        textAlign: column.align || "left",
+                      }}
                     >
-                      {column.Render
-                        ? column.Render(
-                            row,
-                            rowIndex,
-                            relativeRowNumber + rowIndex,
-                          )
-                        : column.accessor
-                        ? (row as any)[column.accessor]
-                        : null}
+                      <div
+                        style={{
+                          display: "flex",
+                          textAlign: column.align || "left",
+                          justifyContent: column.align || "left",
+                        }}
+                      >
+                        {column.Render
+                          ? column.Render(
+                              row,
+                              rowIndex,
+                              relativeRowNumber + rowIndex,
+                            )
+                          : column.accessor
+                          ? (row as any)[column.accessor]
+                          : null}
+                      </div>
                     </TableCell>
                   );
                 })}

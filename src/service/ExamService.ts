@@ -130,7 +130,7 @@ export default class ExamService {
     return (await supabase.from("user-specific-exams").select("*")).data;
   }
 
-  static async updateExamsStatus(ids: number, isActive: boolean) {
+  static async updateExamsStatus(ids: number[], isActive: boolean) {
     const { error } = await supabase
       .from("exams")
       .update({ isActive })

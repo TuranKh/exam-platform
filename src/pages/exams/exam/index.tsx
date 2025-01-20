@@ -192,15 +192,22 @@ export default function Exam() {
     setImageUploadingLoading(false);
 
     if (requestResult) {
-      queryClient.invalidateQueries({
-        queryKey: ["get-exam", id],
-      });
+      invalidateQueries();
       toast.success("İmtahan uğurla redaktə edildi");
       navigate("/exams");
     } else {
       toast.error("İmtahan redaktə edərkən xəta baş verdi");
     }
   }
+
+  const invalidateQueries = function () {
+    queryClient.invalidateQueries({
+      queryKey: ["get-exam", id],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["permissions-exams"],
+    });
+  };
 
   async function createNewExam() {
     const randomIdentifier = crypto.randomUUID();
@@ -237,6 +244,7 @@ export default function Exam() {
     toast.promise(ExamService.createExam(finalExamDetails), {
       loading: "Yeni imtahan yaranır...",
       success: () => {
+        invalidateQueries();
         setImageUploadingLoading(false);
         navigate("/exams");
         return "Yeni imtahan uğurla yaradıldı";

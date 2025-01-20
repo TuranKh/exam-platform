@@ -45,7 +45,6 @@ export default class UserExamsService {
     examId,
     isFinished,
     score,
-    totalGivenAttemptsCount,
     hasAccess,
     exams (
       id,
