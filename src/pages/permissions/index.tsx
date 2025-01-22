@@ -7,15 +7,16 @@ import usePagination, { initialPage } from "@/hooks/usePagination";
 import ExamService from "@/service/ExamService";
 import GroupService from "@/service/GroupService";
 import UserExamsService, { UserExamDetails } from "@/service/UserExamsService";
+import UserService from "@/service/UserService";
 import {
   Ban,
   CircleArrowOutUpRight,
   HandCoins,
   RefreshCcw,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { useQuery, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 
 export type UserExamFilters = {
   groupName: string;
@@ -23,11 +24,14 @@ export type UserExamFilters = {
   hasAccess: boolean;
 };
 
+let timerId: null | number = null;
+
 export default function Permissions() {
   const { filters, resetFilters, setFilters } =
     useFilter<Filter<UserExamFilters>>();
   const paginationDetails = usePagination(10);
   const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const {
     data: exams,
@@ -55,6 +59,28 @@ export default function Permissions() {
     queryFn: GroupService.getAllForSelect,
     queryKey: ["all-select-groups"],
   });
+
+  const searchResultsMutation = useMutation({
+    mutationFn: () => {
+      return UserService.searchByEmailOrName(searchQuery);
+    },
+    onError: () => {
+      toast.error("Axtarış edərkən xəta baş verdi 😔");
+    },
+  });
+
+  const search = function (e: ChangeEvent<HTMLInputElement>) {
+    if (timerId) clearTimeout(timerId);
+    const input = e.target.value.trim();
+    setSearchQuery(input);
+    if (!input) {
+      return;
+    }
+
+    timerId = window.setTimeout(async () => {
+      searchResultsMutation.mutate();
+    }, 500);
+  };
 
   const handleAccessToggle = useCallback(
     async (id: number | number[], hasAccess: boolean) => {
@@ -209,7 +235,6 @@ export default function Permissions() {
   return (
     <div className='p-6 space-y-4'>
       <h1 className='text-2xl font-bold'>İcazələr</h1>
-
       <Search<UserExamFilters>
         onSearch={onSearch}
         onReset={onReset}
@@ -246,6 +271,11 @@ const hasAccessOptions = [
 ];
 
 const inputs: InputDetails[] = [
+  {
+    key: "userId",
+    label: "İstifadəçini seçin",
+    type: FormFieldType.CustomElement,
+  },
   {
     key: "examId",
     label: "İmtahan adı",

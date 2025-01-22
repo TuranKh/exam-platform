@@ -1,14 +1,7 @@
 import { Fragment, useCallback } from "react";
 import DatePicker from "../Datepicker";
+import { ComboboxDemo } from "../ui/combobox";
 import { Input } from "../ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
 import { Switch } from "../ui/switch";
 import "./FormBuilder.scss";
 import CustomSelect from "./components/CustomSelect";
@@ -88,6 +81,8 @@ export default function FormBuilder({ form }: { form: FormDetails }) {
               formFieldDetails={formFieldDetails}
             />
           );
+        case FormFieldType.CustomElement:
+          return <ComboboxDemo formFieldDetails={formFieldDetails} />;
         case FormFieldType.DatePicker:
           return (
             <DatePicker
