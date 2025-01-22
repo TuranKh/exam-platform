@@ -1,3 +1,4 @@
+import { Option } from "@/components/FormBuilder/components/CustomSelect";
 import { Filter } from "@/hooks/useFilter";
 import RequestHelper from "@/lib/request-helper";
 import { UsedFilters } from "@/pages/users";
@@ -52,12 +53,26 @@ export default class UserService {
   }
 
   static async getAllUsersDetails(
-    filters: Partial<Filter<UsedFilters>>,
+    filters?: Partial<Filter<UsedFilters>>,
   ): Promise<UserDetails[]> {
     const initialQuery = supabase.from("users-details").select("*").order("id");
     const finalQuery = RequestHelper.applyFilters(initialQuery, filters);
 
     return (await finalQuery).data;
+  }
+
+  static async getAllUsersForSelect(): Promise<Option[]> {
+    const initialQuery = supabase
+      .from("users-details")
+      .select(
+        `
+      label:name,
+      value:id
+    `,
+      )
+      .order("id");
+
+    return (await initialQuery).data || [];
   }
 
   static async searchByEmailOrName(query: string): Promise<UserDetails[]> {

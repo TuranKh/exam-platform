@@ -15,34 +15,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AvailableValues, FormChangeProps } from "../FormBuilder";
+import { Option } from "../FormBuilder/components/CustomSelect";
 
-const options = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-  {
-    value: "sveltekit",
-    label: "SvelteKit",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-];
-
-export function ComboboxDemo({
+export function Autocomplete({
   formFieldDetails,
+  options,
 }: {
   formFieldDetails: {
     onChange: (details: FormChangeProps) => void;
@@ -50,9 +29,31 @@ export function ComboboxDemo({
     label: string;
     key: string;
   };
+  options: Option[];
 }) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
+
+  const foundOption = useMemo(() => {
+    const result = options.find(
+      (optionDetails) => optionDetails.value === formFieldDetails.value,
+    )?.label;
+
+    return result;
+  }, [options, formFieldDetails.value]);
+
+  const findId = useCallback(
+    (value: string) => {
+      const selectedOption = options.find(
+        (optionDetails) => optionDetails.label === value,
+      );
+
+      formFieldDetails.onChange({
+        [formFieldDetails.key]: selectedOption?.value || null,
+      });
+      setOpen(false);
+    },
+    [options, formFieldDetails],
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -63,9 +64,7 @@ export function ComboboxDemo({
           aria-expanded={open}
           className='w-[250px] justify-between'
         >
-          {value
-            ? options.find((framework) => framework.value === value)?.label
-            : formFieldDetails.label}
+          {formFieldDetails.value ? foundOption : formFieldDetails.label}
           <ChevronsUpDown className='opacity-50' />
         </Button>
       </PopoverTrigger>
@@ -75,20 +74,19 @@ export function ComboboxDemo({
           <CommandList>
             <CommandEmpty>Nəticə tapılmadı</CommandEmpty>
             <CommandGroup>
-              {options.map((framework) => (
+              {options.map((optionDetails) => (
                 <CommandItem
-                  key={framework.value}
-                  value={framework.value}
-                  onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue);
-                    setOpen(false);
-                  }}
+                  key={optionDetails.value}
+                  value={optionDetails.value}
+                  onSelect={findId}
                 >
-                  {framework.label}
+                  {optionDetails.label}
                   <Check
                     className={cn(
                       "ml-auto",
-                      value === framework.value ? "opacity-100" : "opacity-0",
+                      formFieldDetails.value === optionDetails.value
+                        ? "opacity-100"
+                        : "opacity-0",
                     )}
                   />
                 </CommandItem>

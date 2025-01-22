@@ -8,6 +8,11 @@ import {
 } from "@/components/ui/select";
 import { AvailableValues, FormChangeProps, OptionsValue } from "..";
 
+export type Option = {
+  label: string;
+  value: OptionsValue;
+};
+
 export default function CustomSelect({
   formFieldDetails,
   options,
@@ -18,7 +23,7 @@ export default function CustomSelect({
     label: string;
     key: string;
   };
-  options: { label: string; value: OptionsValue }[];
+  options: Option[];
 }) {
   return (
     <Select

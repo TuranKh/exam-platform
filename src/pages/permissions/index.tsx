@@ -24,14 +24,11 @@ export type UserExamFilters = {
   hasAccess: boolean;
 };
 
-let timerId: null | number = null;
-
 export default function Permissions() {
   const { filters, resetFilters, setFilters } =
     useFilter<Filter<UserExamFilters>>();
   const paginationDetails = usePagination(10);
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState("");
 
   const {
     data: exams,
@@ -40,10 +37,16 @@ export default function Permissions() {
   } = useQuery({
     queryKey: ["permissions-exams", filters, paginationDetails.page],
     queryFn: async () => {
+      console.log(filters);
       const data = await UserExamsService.getAll(filters, paginationDetails);
       paginationDetails.setTotalRowsNumber(data.count);
       return data;
     },
+  });
+
+  const { data: users } = useQuery({
+    queryKey: ["all-users-details"],
+    queryFn: UserService.getAllUsersForSelect,
   });
 
   useEffect(() => {
@@ -59,28 +62,6 @@ export default function Permissions() {
     queryFn: GroupService.getAllForSelect,
     queryKey: ["all-select-groups"],
   });
-
-  const searchResultsMutation = useMutation({
-    mutationFn: () => {
-      return UserService.searchByEmailOrName(searchQuery);
-    },
-    onError: () => {
-      toast.error("Axtarış edərkən xəta baş verdi 😔");
-    },
-  });
-
-  const search = function (e: ChangeEvent<HTMLInputElement>) {
-    if (timerId) clearTimeout(timerId);
-    const input = e.target.value.trim();
-    setSearchQuery(input);
-    if (!input) {
-      return;
-    }
-
-    timerId = window.setTimeout(async () => {
-      searchResultsMutation.mutate();
-    }, 500);
-  };
 
   const handleAccessToggle = useCallback(
     async (id: number | number[], hasAccess: boolean) => {
@@ -244,6 +225,7 @@ export default function Permissions() {
             "users.groupId": allGroups || [],
             examId: examOptions || [],
             hasAccess: hasAccessOptions,
+            userId: users || [],
           },
         }}
       />
