@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import DateUtils from "@/lib/date-utils";
 import ExamService from "@/service/ExamService";
+import ImagePlaceholder from "@/assets/placeholder.webp";
 import StorageService from "@/service/StorageService";
 import {
   closestCenter,
@@ -21,6 +22,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
+  BadgePlus,
   BookOpen,
   CircleChevronRight,
   Eraser,
@@ -34,13 +36,15 @@ import toast from "react-hot-toast";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Exam.scss";
+import RichTextEditor from "@/components/RichTextEditor";
 
-interface Question {
+type Question = {
   id: string;
   file?: File;
-  correctAnswer: string | null;
   filePath?: string;
-}
+  manualText?: string;
+  correctAnswer: string | null;
+};
 
 export default function Exam() {
   const { id } = useParams();
@@ -108,15 +112,19 @@ export default function Exam() {
   }
 
   const getNewFileDetails = function (files: File[]) {
+    console.log("executed");
     return files.map((file) => ({
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      id: crypto.randomUUID(),
       file,
       correctAnswer: null,
     }));
   };
 
-  function removePendingQuestion(id: string) {
-    setQuestions((prev) => prev.filter((item) => item.id !== id));
+  function removePendingQuestion(index: number) {
+    setQuestions((prev) => {
+      const editted = [...prev].splice(index, 1);
+      return editted;
+    });
   }
 
   function updateCorrectAnswer(id: string, value: string) {
@@ -289,6 +297,16 @@ export default function Exam() {
     });
   };
 
+  const manualQuestionAdd = function () {
+    const newImageDetails: Question = {
+      correctAnswer: null,
+      id: crypto.randomUUID(),
+    };
+    setQuestions((prev) => {
+      return [...prev, newImageDetails];
+    });
+  };
+
   return (
     <Card className='exam-wrapper'>
       <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
@@ -333,7 +351,7 @@ export default function Exam() {
                       <div className='flex flex-col items-center space-y-2'>
                         <Upload className='w-6 h-6 text-gray-400' />
                         <span className='text-sm text-gray-400'>
-                          Şəkil yükləyin
+                          Birneçə şəkil yükləyin
                         </span>
                       </div>
                       <input
@@ -346,6 +364,12 @@ export default function Exam() {
                     </label>
                   </div>
                 </label>
+                <div className='flex justify-center'>
+                  <Button onClick={manualQuestionAdd} type='button'>
+                    Sual əlavə edin
+                    <BadgePlus />
+                  </Button>
+                </div>
 
                 {questions.length > 0 && (
                   <div className='questions-wrapper'>
@@ -415,6 +439,7 @@ const SortableItem = React.memo(function SortableItem({
 }) {
   const { id } = question;
   const [imageLoading, setImageLoading] = useState(true);
+
   const { attributes, listeners, setNodeRef, transform, transition, active } =
     useSortable({ id });
 
@@ -462,6 +487,10 @@ const SortableItem = React.memo(function SortableItem({
     return defaultOptions;
   }, [transform, transition, active, id]);
 
+  const showImage = useMemo(() => {
+    return question.file || question.filePath;
+  }, [question]);
+
   return (
     <div
       ref={setNodeRef}
@@ -474,7 +503,7 @@ const SortableItem = React.memo(function SortableItem({
       </div>
       <button
         type='button'
-        onClick={() => removePendingQuestion(question.id)}
+        onClick={() => removePendingQuestion(index)}
         className='absolute top-2 right-2 p-1 bg-red-100 rounded-full hover:bg-red-200'
       >
         <X className='w-4 h-4 text-red-600' />
@@ -489,19 +518,36 @@ const SortableItem = React.memo(function SortableItem({
       </div>
       <img
         onLoad={() => {
-          console.log("executed");
           setImageLoading(false);
         }}
         src={imageUrl}
-        style={{ display: imageLoading ? "none" : "block" }}
+        style={{
+          display: imageLoading ? "none" : "block",
+        }}
         alt='Question'
         className='question-image'
       />
-      {imageLoading && (
+      {imageLoading && showImage && (
         <div className='flex justify-center items-center h-60'>
           <Loader className='animate-spin' />
         </div>
       )}
+      {!showImage && (
+        <div className='relative group cursor-pointer rounded transition-transform hover:-translate-y-1'>
+          <Upload
+            size={40}
+            className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                     text-gray-500 transition-transform'
+          />
+
+          <img
+            src={ImagePlaceholder}
+            alt='placeholder'
+            className='question-image'
+          />
+        </div>
+      )}
+      <RichTextEditor />
       <div>
         <CustomSelect
           formFieldDetails={{
