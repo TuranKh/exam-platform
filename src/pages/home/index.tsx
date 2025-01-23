@@ -7,33 +7,159 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
 import { useQuery } from "react-query";
 import StatisticsService from "@/service/StatisticsService";
 import Loading from "@/components/Loading";
+import Search from "@/components/Search";
+import { UserExamFilters } from "../permissions";
+import { Filter } from "@/hooks/useFilter";
+import { FormFieldType, InputDetails } from "@/components/FormBuilder";
+import GroupService from "@/service/GroupService";
+import UserService from "@/service/UserService";
+import ExamService from "@/service/ExamService";
+import { useMemo, useState } from "react";
 
 export default function Home() {
-  const { data: statisticsData } = useQuery({
+  const { data: statsData } = useQuery({
     queryKey: ["statistics"],
     queryFn: StatisticsService.getAll,
   });
 
-  if (!statisticsData || statisticsData.length === 0) {
+  const { data: allGroups } = useQuery({
+    queryFn: GroupService.getAllForSelect,
+    queryKey: ["all-select-groups"],
+  });
+
+  const { data: users } = useQuery({
+    queryKey: ["all-users-details"],
+    queryFn: UserService.getAllUsersForSelect,
+  });
+
+  const { data: examOptions } = useQuery({
+    queryFn: ExamService.getAllForSelect,
+    queryKey: ["exams-select"],
+  });
+
+  const [filters, setFilters] = useState({
+    userId: null,
+    groupId: null,
+    examId: null,
+  });
+
+  const chart1Data = useMemo(() => {
+    if (!statsData) return null;
+
+    // 1) Group rows by userId
+    const byUser: Record<
+      number,
+      { userName: string; totalScore: number; count: number }
+    > = {};
+
+    statsData.forEach((row) => {
+      if (row.score === null) return;
+      const uid = row.userId;
+
+      if (!byUser[uid]) {
+        byUser[uid] = {
+          userName: `${row.userName} ${row.userSurname}`,
+          totalScore: 0,
+          count: 0,
+        };
+      }
+      byUser[uid].totalScore += row.score;
+      byUser[uid].count += 1;
+    });
+
+    // 2) Compute average for each user
+    const averages = Object.entries(byUser).map(([userId, data]) => ({
+      userId: Number(userId),
+      userName: data.userName,
+      avgScore: data.count > 0 ? data.totalScore / data.count : 0,
+    }));
+
+    // 3) Prepare data for Chart.js
+    return {
+      labels: averages.map((a) => a.userName),
+      datasets: [
+        {
+          label: "Average Score",
+          data: averages.map((a) => a.avgScore),
+          backgroundColor: "rgba(75,192,192,0.6)",
+        },
+      ],
+    };
+  }, [statsData]);
+
+  const chart2Data = useMemo(() => {
+    if (!statsData) return null;
+
+    // 1) First, compute each student's average (same as above)
+    const byUser: Record<number, { totalScore: number; count: number }> = {};
+
+    statsData.forEach((row) => {
+      if (row.score === null) return;
+      if (!byUser[row.userId]) {
+        byUser[row.userId] = { totalScore: 0, count: 0 };
+      }
+      byUser[row.userId].totalScore += row.score;
+      byUser[row.userId].count += 1;
+    });
+
+    const userAverages = Object.values(byUser).map((data) =>
+      data.count > 0 ? data.totalScore / data.count : 0,
+    );
+
+    const ranges = [
+      "0-10",
+      "11-20",
+      "21-30",
+      "31-40",
+      "41-50",
+      "51-60",
+      "61-70",
+      "71-80",
+      "81-90",
+      "91-100",
+    ];
+    const rangeCounts = ranges.map(() => 0);
+
+    userAverages.forEach((avg) => {
+      let idx = 0;
+      if (avg >= 0 && avg <= 10) idx = 0;
+      else if (avg <= 20) idx = 1;
+      else if (avg <= 30) idx = 2;
+      else if (avg <= 40) idx = 3;
+      else if (avg <= 50) idx = 4;
+      else if (avg <= 60) idx = 5;
+      else if (avg <= 70) idx = 6;
+      else if (avg <= 80) idx = 7;
+      else if (avg <= 90) idx = 8;
+      else idx = 9;
+      rangeCounts[idx]++;
+    });
+
+    // 3) Prepare data for Chart.js
+    return {
+      labels: ranges,
+      datasets: [
+        {
+          label: "Number of Students",
+          data: rangeCounts,
+          backgroundColor: "rgba(255,99,132,0.6)",
+        },
+      ],
+    };
+  }, [statsData]);
+
+  const onSearch = function (params: Filter<UserExamFilters>) {};
+
+  const onReset = function () {};
+
+  if (!statsData || statsData.length === 0) {
     return <Loading />;
   }
 
-  const statistics = statisticsData[0];
+  const statistics = statsData[0];
 
   const {
     totalExams,
@@ -46,13 +172,10 @@ export default function Home() {
     examPopularity,
   } = statistics;
 
-  // If userMarkDistribution is null, we can handle it by providing an empty array or showing a message.
   const markDistributionData = userMarkDistribution || [];
-  // Similarly for averageExamDurationByExam and recentActivity
   const averageExamDurations = averageExamDurationByExam || [];
   const activityData = recentActivity || [];
 
-  // Extract exam popularity info
   const {
     mostPopularExam,
     leastPopularExam,
@@ -69,6 +192,18 @@ export default function Home() {
         <TabsList>
           <TabsTrigger value='overview'>Ümumi baxış</TabsTrigger>
         </TabsList>
+        <Search<UserExamFilters>
+          onSearch={onSearch}
+          onReset={onReset}
+          formDetails={{
+            inputs,
+            options: {
+              "users.groupId": allGroups || [],
+              examId: examOptions || [],
+              userId: users || [],
+            },
+          }}
+        />
         <TabsContent value='overview' className='space-y-4'>
           <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
             <Card>
@@ -113,9 +248,6 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <div className='text-2xl font-bold'>{totalUsers}</div>
-                <p className='text-xs text-muted-foreground'>
-                  Keçən aydan +180
-                </p>
               </CardContent>
             </Card>
             <Card>
@@ -129,9 +261,6 @@ export default function Home() {
                 <div className='text-2xl font-bold'>
                   {averageExamDuration || 0} dəq
                 </div>
-                <p className='text-xs text-muted-foreground'>
-                  Keçən aydan -2 dəq
-                </p>
               </CardContent>
             </Card>
           </div>
@@ -140,30 +269,7 @@ export default function Home() {
               <CardHeader>
                 <CardTitle>İstifadəçi Qiymət Paylanması</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className='h-[350px]'>
-                  {markDistributionData.length > 0 ? (
-                    <ResponsiveContainer width='100%' height='100%'>
-                      <BarChart data={markDistributionData}>
-                        <CartesianGrid strokeDasharray='3 3' />
-                        <XAxis dataKey='markRange' />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar
-                          dataKey='count'
-                          fill='hsl(var(--primary))'
-                          name='Şagird Sayı'
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <p className='text-sm text-muted-foreground'>
-                      Heç bir qiymət paylanması tapılmadı.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
+              <CardContent></CardContent>
             </Card>
             <Card className='col-span-3'>
               <CardHeader>
@@ -172,31 +278,7 @@ export default function Home() {
                   Hər imtahan üçün orta vaxt dəqiqələrlə
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className='h-[350px]'>
-                  {averageExamDurations.length > 0 ? (
-                    <ResponsiveContainer width='100%' height='100%'>
-                      <LineChart data={averageExamDurations}>
-                        <CartesianGrid strokeDasharray='3 3' />
-                        <XAxis dataKey='exam' />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line
-                          type='monotone'
-                          dataKey='duration'
-                          stroke='hsl(var(--primary))'
-                          name='Müddət (dəqiqələrlə)'
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <p className='text-sm text-muted-foreground'>
-                      Orta imtahan müddəti ilə bağlı məlumat yoxdur.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
+              <CardContent></CardContent>
             </Card>
           </div>
           <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-7'>
@@ -274,6 +356,28 @@ export default function Home() {
           </div>
         </TabsContent>
       </Tabs>
+      <div style={{ padding: "2rem" }}>
+        <h1>Dynamic Statistics</h1>
+        <hr style={{ margin: "1rem 0" }} />
+      </div>
     </div>
   );
 }
+
+const inputs: InputDetails[] = [
+  {
+    key: "userId",
+    label: "İstifadəçini seçin",
+    type: FormFieldType.CustomElement,
+  },
+  {
+    key: "examId",
+    label: "İmtahan adı",
+    type: FormFieldType.Select,
+  },
+  {
+    key: "users.groupId",
+    label: "Qrup",
+    type: FormFieldType.Select,
+  },
+];
