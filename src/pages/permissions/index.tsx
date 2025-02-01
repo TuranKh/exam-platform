@@ -14,9 +14,9 @@ import {
   HandCoins,
   RefreshCcw,
 } from "lucide-react";
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 
 export type UserExamFilters = {
   groupName: string;

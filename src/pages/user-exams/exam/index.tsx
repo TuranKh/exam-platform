@@ -11,10 +11,11 @@ import {
   PaginationLink,
 } from "@/components/ui/pagination";
 import usePagination from "@/hooks/usePagination";
-import { selectAnswerOptions } from "@/pages/exams/exam";
+import { selectAnswerOptions } from "@/lib/exam";
+import ExamService from "@/service/ExamService";
 import StorageService from "@/service/StorageService";
 import UserExamsService from "@/service/UserExamsService";
-import { constructNow, differenceInSeconds } from "date-fns";
+import { differenceInSeconds } from "date-fns";
 import {
   BookOpen,
   CircleChevronRight,
@@ -28,7 +29,6 @@ import toast from "react-hot-toast";
 import { useQuery } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Exam.scss";
-import ExamService from "@/service/ExamService";
 
 interface Question {
   id: string;
