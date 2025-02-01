@@ -9,7 +9,7 @@ import {
 import { useModalStore } from "@/store/ModalStore";
 import { Button } from "./ui/button";
 
-export function ConfirmationDialog() {
+export default function ConfirmationDialog() {
   const { isModalOpen, message, onConfirm, onReject, closeModal } =
     useModalStore();
 
