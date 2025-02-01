@@ -90,67 +90,6 @@ export default function Home() {
     };
   }, [statsData]);
 
-  const chart2Data = useMemo(() => {
-    if (!statsData) return null;
-
-    // 1) First, compute each student's average (same as above)
-    const byUser: Record<number, { totalScore: number; count: number }> = {};
-
-    statsData.forEach((row) => {
-      if (row.score === null) return;
-      if (!byUser[row.userId]) {
-        byUser[row.userId] = { totalScore: 0, count: 0 };
-      }
-      byUser[row.userId].totalScore += row.score;
-      byUser[row.userId].count += 1;
-    });
-
-    const userAverages = Object.values(byUser).map((data) =>
-      data.count > 0 ? data.totalScore / data.count : 0,
-    );
-
-    const ranges = [
-      "0-10",
-      "11-20",
-      "21-30",
-      "31-40",
-      "41-50",
-      "51-60",
-      "61-70",
-      "71-80",
-      "81-90",
-      "91-100",
-    ];
-    const rangeCounts = ranges.map(() => 0);
-
-    userAverages.forEach((avg) => {
-      let idx = 0;
-      if (avg >= 0 && avg <= 10) idx = 0;
-      else if (avg <= 20) idx = 1;
-      else if (avg <= 30) idx = 2;
-      else if (avg <= 40) idx = 3;
-      else if (avg <= 50) idx = 4;
-      else if (avg <= 60) idx = 5;
-      else if (avg <= 70) idx = 6;
-      else if (avg <= 80) idx = 7;
-      else if (avg <= 90) idx = 8;
-      else idx = 9;
-      rangeCounts[idx]++;
-    });
-
-    // 3) Prepare data for Chart.js
-    return {
-      labels: ranges,
-      datasets: [
-        {
-          label: "Number of Students",
-          data: rangeCounts,
-          backgroundColor: "rgba(255,99,132,0.6)",
-        },
-      ],
-    };
-  }, [statsData]);
-
   const onSearch = function (params: Filter<UserExamFilters>) {};
 
   const onReset = function () {};
