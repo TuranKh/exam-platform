@@ -17,7 +17,7 @@ jobs:
           ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
       - name: connect and pull
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && pwd && git checkout staging && git pull && npm install && npm run build && mv -f ./dist/* ${{ secrets.DEPLOY_DIR }} && sudo systemctl reload nginx"
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout staging && git pull && npm install && npm run build && mv -f ./dist/* ${{ secrets.DEPLOY_DIR }} && sudo systemctl reload nginx"
 
       - name: cleanup
         run: rm -rf ~/.ssh
