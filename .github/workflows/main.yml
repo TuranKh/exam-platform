@@ -19,6 +19,7 @@ jobs:
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 
           "cd ${{ secrets.WORK_DIR }} && 
+          pwd && 
           git checkout staging && 
           git pull &&
           npm install && 
