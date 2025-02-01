@@ -23,7 +23,7 @@ jobs:
           git pull &&
           npm install && 
           npm run build &&
-          mv -f ./build/* ${{ secrets.DEPLOY_DIR }} && 
+          mv -f ./dist/* ${{ secrets.DEPLOY_DIR }} && 
           sudo systemctl reload nginx &&
           exit"
       - name: cleanup
