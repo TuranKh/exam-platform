@@ -1,4 +1,4 @@
-import ImagePlaceholder from "@/assets/placeholder.webp";
+import ImagePlaceholder from "/assets/placeholder.webp";
 import CustomSelect from "@/components/FormBuilder/components/CustomSelect";
 import RichTextEditor from "@/components/RichTextEditor";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
