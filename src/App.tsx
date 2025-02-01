@@ -1,16 +1,21 @@
 import { Toaster } from "react-hot-toast";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Suspense, lazy } from "react";
 import "./App.css";
-import { ConfirmationDialog } from "./components/ConfirmationDialog";
-import Layout from "./components/Layout";
-import ProtectedRouter from "./components/ProtectedRouter";
+
+const ConfirmationDialog = lazy(
+  () => import("./components/ConfirmationDialog"),
+);
+const Layout = lazy(() => import("./components/Layout"));
+const ProtectedRouter = lazy(() => import("./components/ProtectedRouter"));
+const AuthPage = lazy(() => import("./pages/auth"));
+const Exam = lazy(() => import("./pages/exams/exam"));
+const NotFound = lazy(() => import("./pages/not-found"));
+const Pending = lazy(() => import("./pages/pending"));
+const Profile = lazy(() => import("./pages/profile"));
+const UserExam = lazy(() => import("./pages/user-exams/exam"));
 import { sidebarRoutes, UserRole } from "./config/sidebar";
-import AuthPage from "./pages/auth";
-import Exam from "./pages/exams/exam";
-import NotFound from "./pages/not-found";
-import Pending from "./pages/pending";
-import Profile from "./pages/profile";
-import UserExam from "./pages/user-exams/exam";
+import Loading from "./components/Loading";
 
 const router = createBrowserRouter([
   {
@@ -77,7 +82,7 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <>
+    <Suspense fallback={<Loading />}>
       <RouterProvider router={router} />
       <Toaster
         toastOptions={{
@@ -92,7 +97,7 @@ function App() {
         reverseOrder={false}
       />
       <ConfirmationDialog />
-    </>
+    </Suspense>
   );
 }
 
