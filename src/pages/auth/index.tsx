@@ -15,8 +15,8 @@ export default function AuthPage() {
         >
           <img
             onLoad={() => setIsImageLoaded(true)}
-            style={isImageLoaded ? {display: 'block'} : {display: 'none'}}
-            src='/src/assets/auth-bg.webp'
+            style={isImageLoaded ? { display: "block" } : { display: "none" }}
+            src='/assets/auth-bg.webp'
           />
         </div>
         <div className='lg:p-8'>

@@ -1,4 +1,4 @@
-import placeholderImage from "@/assets/placeholder.webp";
+import placeholderImage from "/assets/placeholder.webp";
 import { Countdown } from "@/components/Countdown";
 import CustomSelect from "@/components/FormBuilder/components/CustomSelect";
 import IconButton from "@/components/IconButton";
