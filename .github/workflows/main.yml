@@ -16,6 +16,15 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
       - name: connect and pull
-        run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout staging && git pull && exit"
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 
+          "cd ${{ secrets.WORK_DIR }} && 
+          git checkout staging && 
+          git pull &&
+          npm install && 
+          npm run build &&
+          mv -f ./build/* ${{ secrets.DEPLOY_DIR }} && 
+          sudo systemctl reload nginx &&
+          exit"
       - name: cleanup
         run: rm -rf ~/.ssh
