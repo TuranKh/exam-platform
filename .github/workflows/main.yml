@@ -21,8 +21,10 @@ jobs:
             cd ${{ secrets.WORK_DIR }} && \
             git checkout staging && \
             git pull && \
+            cp /var/env/env.ts ${{ secrets.WORK_DIR }} && \ 
             npm install && \
             npm run build && \
+            git reset --hard && \
             rm -rf ${{ secrets.DEPLOY_DIR }}/* && \
             mv -f ./dist/* ${{ secrets.DEPLOY_DIR }} && \
             sudo systemctl reload nginx"
