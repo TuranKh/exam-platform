@@ -1,4 +1,6 @@
-import { Activity, BookOpen, Clock, Users } from "lucide-react";
+import { FormFieldType, InputDetails } from "@/components/FormBuilder";
+import Loading from "@/components/Loading";
+import Search from "@/components/Search";
 import {
   Card,
   CardContent,
@@ -7,17 +9,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useQuery } from "react-query";
-import StatisticsService from "@/service/StatisticsService";
-import Loading from "@/components/Loading";
-import Search from "@/components/Search";
-import { UserExamFilters } from "../permissions";
 import { Filter } from "@/hooks/useFilter";
-import { FormFieldType, InputDetails } from "@/components/FormBuilder";
-import GroupService from "@/service/GroupService";
-import UserService from "@/service/UserService";
 import ExamService from "@/service/ExamService";
-import { useMemo, useState } from "react";
+import GroupService from "@/service/GroupService";
+import StatisticsService from "@/service/StatisticsService";
+import UserService from "@/service/UserService";
+import { Activity, BookOpen, Clock, Users } from "lucide-react";
+import { useQuery } from "react-query";
+import { UserExamFilters } from "../permissions";
 
 export default function Home() {
   const { data: statsData } = useQuery({
@@ -40,56 +39,6 @@ export default function Home() {
     queryKey: ["exams-select"],
   });
 
-  const [filters, setFilters] = useState({
-    userId: null,
-    groupId: null,
-    examId: null,
-  });
-
-  const chart1Data = useMemo(() => {
-    if (!statsData) return null;
-
-    // 1) Group rows by userId
-    const byUser: Record<
-      number,
-      { userName: string; totalScore: number; count: number }
-    > = {};
-
-    statsData.forEach((row) => {
-      if (row.score === null) return;
-      const uid = row.userId;
-
-      if (!byUser[uid]) {
-        byUser[uid] = {
-          userName: `${row.userName} ${row.userSurname}`,
-          totalScore: 0,
-          count: 0,
-        };
-      }
-      byUser[uid].totalScore += row.score;
-      byUser[uid].count += 1;
-    });
-
-    // 2) Compute average for each user
-    const averages = Object.entries(byUser).map(([userId, data]) => ({
-      userId: Number(userId),
-      userName: data.userName,
-      avgScore: data.count > 0 ? data.totalScore / data.count : 0,
-    }));
-
-    // 3) Prepare data for Chart.js
-    return {
-      labels: averages.map((a) => a.userName),
-      datasets: [
-        {
-          label: "Average Score",
-          data: averages.map((a) => a.avgScore),
-          backgroundColor: "rgba(75,192,192,0.6)",
-        },
-      ],
-    };
-  }, [statsData]);
-
   const onSearch = function (params: Filter<UserExamFilters>) {};
 
   const onReset = function () {};
@@ -105,14 +54,10 @@ export default function Home() {
     activeExams,
     totalUsers,
     averageExamDuration,
-    userMarkDistribution,
-    averageExamDurationByExam,
     recentActivity,
     examPopularity,
   } = statistics;
 
-  const markDistributionData = userMarkDistribution || [];
-  const averageExamDurations = averageExamDurationByExam || [];
   const activityData = recentActivity || [];
 
   const {
