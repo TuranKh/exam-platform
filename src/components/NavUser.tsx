@@ -1,12 +1,17 @@
+import UserService from "@/service/UserService";
 import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
   CreditCard,
   LogOut,
-  Sparkles,
 } from "lucide-react";
+import { useMemo } from "react";
+import toast from "react-hot-toast";
+import { useQuery } from "react-query";
+import { Link, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,12 +27,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "./ui/sidebar";
-import { useQuery } from "react-query";
-import UserService from "@/service/UserService";
-import toast from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
-import { useMemo } from "react";
-import { Badge } from "./ui/badge";
 
 export default function NavUser() {
   const { isMobile } = useSidebar();

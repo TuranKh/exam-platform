@@ -12,6 +12,39 @@ export default class UserService {
     });
   }
 
+  static async updateLastActivity(userId: number) {
+    const now = new Date().toISOString();
+
+    await supabase
+      .from("users")
+      .update({ lastActivityDate: now })
+      .eq("id", userId);
+  }
+
+  static async getLastRegisteredUsers(userId: number) {
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("lastActivityDate")
+      .eq("id", userId)
+      .single();
+
+    if (userError) {
+      console.error("Error fetching lastActivityDate:", userError);
+      return;
+    }
+
+    const { data, count, error } = await supabase
+      .from("users")
+      .select("*", { count: "exact", head: true })
+      .gt("createdAt", userData.lastActivityDate);
+
+    if (error) {
+      console.error("Error fetching users count:", error);
+      return;
+    }
+    return count;
+  }
+
   static async getUser(): Promise<void | UserDetails> {
     const userDetails = await supabase.auth.getUser();
     if (userDetails.data.user?.email) {
@@ -150,4 +183,5 @@ export type UserDetails = {
   patronymic: string;
   groupId: number;
   groupName: string;
+  profileImageUrl: string;
 };
