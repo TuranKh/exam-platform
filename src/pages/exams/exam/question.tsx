@@ -97,8 +97,6 @@ export const Question = React.memo(function SortableItem({
     uploadSingleImage(file);
   };
 
-  console.log(question);
-
   return (
     <div
       ref={setNodeRef}
