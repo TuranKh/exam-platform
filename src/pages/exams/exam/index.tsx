@@ -181,6 +181,7 @@ export default function Exam() {
           id: questionDetails.id,
           answerId: questionDetails.correctAnswer,
           filePath: filePath,
+          description: questionDetails.description,
         };
       }),
     );
