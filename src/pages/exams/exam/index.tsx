@@ -38,6 +38,7 @@ type Question = {
   filePath?: string;
   manualText?: string;
   correctAnswer: string | null;
+  description?: string;
 };
 
 export default function Exam() {
@@ -71,11 +72,17 @@ export default function Exam() {
         const existingQuestions = JSON.parse(existingExamDetails.questions);
         const existingAnswers = JSON.parse(existingExamDetails.answers);
         return existingQuestions.map(
-          (question: { id: string; answerId: number; filePath: string }) => {
+          (question: {
+            id: string;
+            answerId: number;
+            filePath: string;
+            description: string;
+          }) => {
             return {
               id: question.id,
               correctAnswer: existingAnswers[question.id],
               filePath: question.filePath,
+              description: question.description,
             };
           },
         );
@@ -230,6 +237,7 @@ export default function Exam() {
       return {
         id: value?.id,
         filePath: value?.path,
+        description: questions[index].description,
       };
     });
 
@@ -309,6 +317,18 @@ export default function Exam() {
     };
     setQuestions((prev) => {
       return [...prev, newImageDetails];
+    });
+  };
+
+  const updateDescription = function (index: number, html: string) {
+    setQuestions((current) => {
+      const modified = [...current];
+      modified.splice(index, 1, {
+        ...modified[index],
+        description: html,
+      });
+
+      return modified;
     });
   };
 
@@ -401,6 +421,7 @@ export default function Exam() {
                               uploadSingleImage={(file: File) =>
                                 uploadSingleImage(file, index)
                               }
+                              updateDescription={updateDescription}
                             />
                           ))}
                         </div>

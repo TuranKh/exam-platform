@@ -10,8 +10,6 @@ import {
   Bold,
   Italic,
   LinkIcon,
-  List,
-  ListOrdered,
   UnderlineIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -116,8 +114,15 @@ const MenuBar = ({ editor }: { editor: any }) => {
   );
 };
 
-const RichTextEditor = () => {
+export default function RichTextEditor({
+  initialValue,
+  onChange,
+}: {
+  initialValue: string;
+  onChange: (newValue: string) => void;
+}) {
   const editor = useEditor({
+    content: initialValue,
     extensions: [
       StarterKit,
       Underline,
@@ -129,14 +134,14 @@ const RichTextEditor = () => {
         },
       }),
     ],
+    onUpdate({ editor }) {
+      onChange(editor.getHTML());
+    },
   });
-
   return (
     <div className='w-full max-w-4xl mx-auto border rounded shadow-lg'>
       <MenuBar editor={editor} />
       <EditorContent editor={editor} className='p-4 min-h-[100px]' />
     </div>
   );
-};
-
-export default RichTextEditor;
+}
