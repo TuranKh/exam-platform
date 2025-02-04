@@ -22,6 +22,7 @@ export const Question = React.memo(function SortableItem({
   updateCorrectAnswer,
   index,
   uploadSingleImage,
+  updateDescription,
 }) {
   const { id } = question;
   const [imageLoading, setImageLoading] = useState(true);
@@ -77,6 +78,10 @@ export const Question = React.memo(function SortableItem({
     return question.file || question.filePath;
   }, [question]);
 
+  const onDescriptionChange = function (html: string) {
+    updateDescription(index, html);
+  };
+
   const triggerImageUpload = function () {
     if (!fileInputRef.current) {
       return;
@@ -91,6 +96,8 @@ export const Question = React.memo(function SortableItem({
 
     uploadSingleImage(file);
   };
+
+  console.log(question);
 
   return (
     <div
@@ -178,7 +185,10 @@ export const Question = React.memo(function SortableItem({
             Aşağıdaki hissə imtahan bitdikdən sonra görsənəcək
           </AlertDescription>
         </Alert>
-        <RichTextEditor />
+        <RichTextEditor
+          initialValue={question.description}
+          onChange={onDescriptionChange}
+        />
       </div>
     </div>
   );
