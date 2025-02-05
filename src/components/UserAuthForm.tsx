@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import UserService from "@/service/UserService";
 import OAuthSignIn from "@/supabase/OAuth";
-import { Switch } from "@radix-ui/react-switch";
 
 export function UserAuthForm({
   className,

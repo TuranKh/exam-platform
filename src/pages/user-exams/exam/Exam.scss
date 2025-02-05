@@ -67,6 +67,14 @@
       gap: 1rem;
     }
   }
+  .correct {
+    background-color: green;
+    color: white;
+  }
+  .wrong {
+    background-color: red;
+    color: white;
+  }
 }
 
 .countdown-wrapper {

@@ -1,4 +1,3 @@
-import placeholderImage from "/assets/placeholder.webp";
 import { Countdown } from "@/components/Countdown";
 import CustomSelect from "@/components/FormBuilder/components/CustomSelect";
 import IconButton from "@/components/IconButton";
@@ -11,6 +10,7 @@ import {
   PaginationLink,
 } from "@/components/ui/pagination";
 import usePagination from "@/hooks/usePagination";
+import useWindowSize from "@/hooks/useWindowSize";
 import { selectAnswerOptions } from "@/lib/exam";
 import ExamService from "@/service/ExamService";
 import StorageService from "@/service/StorageService";
@@ -25,10 +25,12 @@ import {
   X,
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
+import Confetti from "react-confetti";
 import toast from "react-hot-toast";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Exam.scss";
+import placeholderImage from "/assets/placeholder.webp";
 
 interface Question {
   id: string;
@@ -40,14 +42,18 @@ interface Question {
 type Answer = Record<string, string | null>;
 
 export default function Exam() {
+  const queryClient = useQueryClient();
+  const [examIsOngoing, setExamIsOngoing] = useState(true);
   const [showTimer, setShowTimer] = useState(true);
   const paginationDetails = usePagination(1);
   const { id } = useParams();
   const navigate = useNavigate();
+  const { width, height } = useWindowSize();
   const [examDetails, setExamDetails] = useState<{
     name: string;
     duration: number;
     id: number;
+    isFinished: boolean;
   }>({});
   const [questions, setQuestions] = useState<
     Array<Omit<Question, "correctAnswer"> & { flagged?: boolean }>
@@ -70,6 +76,13 @@ export default function Exam() {
       setAnswers(JSON.parse(storedAnswers));
     }
   }, []);
+
+  useEffect(() => {
+    if (examDetails.isFinished) {
+      fetchAndSetExams();
+      setExamIsOngoing(false);
+    }
+  }, [examDetails]);
 
   useEffect(() => {
     const storeAnswers = function () {
@@ -95,6 +108,7 @@ export default function Exam() {
         duration: existingExamDetails.duration,
         name: existingExamDetails.name,
         id: existingExamDetails.examId,
+        isFinished: existingExamDetails.isFinished,
       });
       setQuestions(() => {
         const existingQuestions = JSON.parse(existingExamDetails.questions);
@@ -135,14 +149,21 @@ export default function Exam() {
 
   async function submitExam() {
     const error = await UserExamsService.submitAnswers(Number(id), answers);
+    queryClient.invalidateQueries("all-user-exams");
 
     if (error) {
       toast.error("Sualları təsdiq edərkən xəta baş verdi!");
     } else {
-      const answersResponse = await ExamService.getExamAnswers(examDetails.id);
-      setExamAnswers(JSON.parse(answersResponse.answers));
+      await fetchAndSetExams();
+      setExamIsOngoing(false);
+      toast.success("İmtahan uğurla yekunlaşdı");
     }
   }
+
+  const fetchAndSetExams = async function () {
+    const answersResponse = await ExamService.getExamAnswers(examDetails.id);
+    setExamAnswers(JSON.parse(answersResponse.answers));
+  };
 
   const resetAnswers = function () {
     setQuestions((current) => {
@@ -193,7 +214,6 @@ export default function Exam() {
 
   const onTimeout = async function () {
     await submitExam();
-    navigate("/available-exams");
     toast("İmtahan vaxtınız bitdi", {
       icon: "☢️",
     });
@@ -220,7 +240,15 @@ export default function Exam() {
 
   return (
     <>
-      {examDetails?.duration && (
+      {!examIsOngoing && (
+        <Confetti
+          numberOfPieces={1200}
+          recycle={false}
+          width={width}
+          height={height}
+        />
+      )}
+      {examDetails?.duration && examIsOngoing && (
         <div className='absolute right-10 float-right flex flex-col gap-2 items-end'>
           <Timer
             className='cursor-pointer'
@@ -260,17 +288,20 @@ export default function Exam() {
                     <div className='questions-wrapper'>
                       <div className='questions relative'>
                         <Question
+                          examIsOngoing={examIsOngoing}
                           key={activeQuestion.id}
                           index={paginationDetails.page}
                           question={activeQuestion}
                           updateCorrectAnswer={updateCorrectAnswer}
                         />
-                        <IconButton
-                          onClick={flagQuestion}
-                          className='absolute right-5 bottom-5 bg-amber-400	hover:bg-amber-400/90'
-                        >
-                          <Flag size={15} />
-                        </IconButton>
+                        {examIsOngoing && (
+                          <IconButton
+                            onClick={flagQuestion}
+                            className='absolute right-5 bottom-5 bg-amber-400	hover:bg-amber-400/90'
+                          >
+                            <Flag size={15} />
+                          </IconButton>
+                        )}
                       </div>
                     </div>
                   )}
@@ -282,7 +313,6 @@ export default function Exam() {
                       const isFlagged = currentQuestion?.flagged;
                       const userAnswer = answers[currentQuestion.id];
                       const correctAnswer = examAnswers?.[currentQuestion.id];
-                      console.log({ userAnswer, correctAnswer });
                       let className = "";
 
                       if (correctAnswer) {
@@ -331,21 +361,23 @@ export default function Exam() {
                   </PaginationContent>
                 </Pagination>
 
-                <div className='actions'>
-                  <Button
-                    type='button'
-                    onClick={resetAnswers}
-                    variant={"destructive"}
-                    disabled={questions.length === 0}
-                  >
-                    Cavabları sıfırla
-                    <Eraser />
-                  </Button>
-                  <Button type='submit'>
-                    İmtahanı yekunlaşdır
-                    <CircleChevronRight />
-                  </Button>
-                </div>
+                {examIsOngoing && (
+                  <div className='actions'>
+                    <Button
+                      type='button'
+                      onClick={resetAnswers}
+                      variant={"destructive"}
+                      disabled={questions.length === 0}
+                    >
+                      Cavabları sıfırla
+                      <Eraser />
+                    </Button>
+                    <Button type='submit'>
+                      İmtahanı yekunlaşdır
+                      <CircleChevronRight />
+                    </Button>
+                  </div>
+                )}
               </form>
             </div>
           </div>
@@ -359,6 +391,7 @@ const Question = React.memo(function Question({
   question,
   updateCorrectAnswer,
   index,
+  examIsOngoing,
 }) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -403,18 +436,21 @@ const Question = React.memo(function Question({
             onChange: (details) => {
               updateCorrectAnswer(question.id, details.selectedAnswer);
             },
+            disabled: !examIsOngoing,
             label: "Düzgün cavabı seçin",
             value: question?.correctAnswer,
           }}
           options={selectAnswerOptions}
         />
-        <IconButton
-          onClick={() => {
-            updateCorrectAnswer(question.id, null);
-          }}
-        >
-          <X className='cursor-pointer' />
-        </IconButton>
+        {examIsOngoing && (
+          <IconButton
+            onClick={() => {
+              updateCorrectAnswer(question.id, null);
+            }}
+          >
+            <X className='cursor-pointer' />
+          </IconButton>
+        )}
       </div>
     </div>
   );
