@@ -189,10 +189,10 @@ export default function CustomTable<T extends { id: number }>({
         )}
       </div>
       <motion.div
-        initial={{ opacity: 0, height: 0 }}
+        initial={{ display: "none", opacity: 0, height: 0 }}
         animate={
           selectedRowIds.size
-            ? { opacity: 1, height: "auto" }
+            ? { opacity: 1, height: "auto", display: "block" }
             : { opacity: 0, height: 0 }
         }
         transition={{ duration: 0.5 }}
