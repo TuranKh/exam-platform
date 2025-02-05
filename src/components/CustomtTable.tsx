@@ -89,7 +89,7 @@ export default function CustomTable<T extends { id: number }>({
   return (
     <div className='custom-table'>
       <div className='mt-4'>
-        {!isLoading && paginationDetails && selectedRowIds.size && (
+        {!isLoading && paginationDetails && selectedRowIds.size !== 0 && (
           <CustomPagination
             selectedRowsCount={selectedRowIds.size}
             paginationDetails={paginationDetails}
