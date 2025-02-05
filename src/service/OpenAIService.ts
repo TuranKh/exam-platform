@@ -16,5 +16,4 @@ export const completion = async function () {
     ],
     store: true,
   });
-  console.log(result);
 };

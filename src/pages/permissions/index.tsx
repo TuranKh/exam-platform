@@ -37,7 +37,6 @@ export default function Permissions() {
   } = useQuery({
     queryKey: ["permissions-exams", filters, paginationDetails.page],
     queryFn: async () => {
-      console.log(filters);
       const data = await UserExamsService.getAll(filters, paginationDetails);
       paginationDetails.setTotalRowsNumber(data.count);
       return data;

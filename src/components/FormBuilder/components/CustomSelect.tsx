@@ -22,11 +22,13 @@ export default function CustomSelect({
     value: AvailableValues;
     label: string;
     key: string;
+    disabled?: boolean;
   };
   options: Option[];
 }) {
   return (
     <Select
+      disabled={formFieldDetails.disabled}
       value={formFieldDetails.value ? String(formFieldDetails.value) : ""}
       onValueChange={(value) => {
         formFieldDetails.onChange({ [formFieldDetails.key]: value });

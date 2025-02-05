@@ -1,6 +1,7 @@
 import CustomTable, { Column } from "@/components/CustomtTable";
 import { FormFieldType, InputDetails } from "@/components/FormBuilder";
 import Search from "@/components/Search";
+import { Button } from "@/components/ui/button";
 import useFilter, { Filter } from "@/hooks/useFilter";
 import usePagination, { initialPage } from "@/hooks/usePagination";
 import DateUtils from "@/lib/date-utils";
@@ -9,10 +10,10 @@ import ExamService, {
   ExamFilters,
   ExamState,
 } from "@/service/ExamService";
-import { CirclePlay } from "lucide-react";
+import { CirclePlay, Eye, StepForward } from "lucide-react";
 import { useMemo } from "react";
 import { useQuery } from "react-query";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function UserExams() {
   const navigate = useNavigate();
@@ -182,7 +183,31 @@ const staticColumns: Column<ExamDetails>[] = [
     accessor: "examState",
     align: "center",
     Render: (data: ExamDetails) => {
-      return ExamStateMapper[data.examState];
+      switch (data.examState) {
+        case ExamState.NotStarted:
+          return (
+            <Link to={`/available-exams/${data.id}`}>
+              <StepForward className='cursor-pointer' />
+            </Link>
+          );
+
+        case ExamState.Ongoing:
+          return (
+            <Link to={`/available-exams/${data.id}`}>
+              <StepForward className='cursor-pointer' />
+            </Link>
+          );
+
+        case ExamState.Ended:
+          return (
+            <Link to={`/available-exams/${data.id}`}>
+              <Eye className='cursor-pointer' />
+            </Link>
+          );
+
+        default:
+          return ExamStateMapper[data.examState];
+      }
     },
   },
 ];

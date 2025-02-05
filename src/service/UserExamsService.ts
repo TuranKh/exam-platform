@@ -103,7 +103,7 @@ export default class UserExamsService {
   ) {
     const { error } = await supabase
       .from("user-exams")
-      .update({ submittedAnswers: answers })
+      .update({ submittedAnswers: answers, isFinished: true })
       .eq("id", rowId)
       .select("*");
 

@@ -92,7 +92,6 @@ export const Question = React.memo(function SortableItem({
 
   const uploadImage = function (e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    console.log(file);
 
     uploadSingleImage(file);
   };

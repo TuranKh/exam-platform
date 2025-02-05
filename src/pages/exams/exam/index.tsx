@@ -151,10 +151,12 @@ export default function Exam() {
     }
 
     if (isEditMode) {
-      editExam();
+      await editExam();
+      queryClient.invalidateQueries("exams-select");
       return;
     }
-    createNewExam();
+    await createNewExam();
+    queryClient.invalidateQueries("exams-select");
   }
 
   async function editExam() {

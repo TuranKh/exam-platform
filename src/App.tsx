@@ -125,7 +125,6 @@ function App() {
     };
 
     const onInsert = (payload: { new: UserDetails }) => {
-      console.log(payload);
       toast.custom(
         (t) => {
           return (
