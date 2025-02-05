@@ -88,6 +88,15 @@ export default function CustomTable<T extends { id: number }>({
 
   return (
     <div className='custom-table'>
+      <div className='mt-4'>
+        {!isLoading && paginationDetails && selectedRowIds.size !== 0 && (
+          <CustomPagination
+            selectedRowsCount={selectedRowIds.size}
+            paginationDetails={paginationDetails}
+          />
+        )}
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -189,10 +198,10 @@ export default function CustomTable<T extends { id: number }>({
         )}
       </div>
       <motion.div
-        initial={{ opacity: 0, height: 0 }}
+        initial={{ display: "none", opacity: 0, height: 0 }}
         animate={
           selectedRowIds.size
-            ? { opacity: 1, height: "auto" }
+            ? { opacity: 1, height: "auto", display: "block" }
             : { opacity: 0, height: 0 }
         }
         transition={{ duration: 0.5 }}
