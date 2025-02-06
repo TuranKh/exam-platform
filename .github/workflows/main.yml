@@ -21,6 +21,7 @@ jobs:
             cd ${{ secrets.WORK_DIR }} && \
             git checkout staging && \
             git pull && \
+            cd frontend && \
             cp /var/env/env.ts ${{ secrets.WORK_DIR }} && \ 
             npm install && \
             npm run build && \
