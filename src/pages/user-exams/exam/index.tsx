@@ -233,6 +233,10 @@ export default function Exam() {
 
   const prefetchImage = async function (pageNumber: number) {
     const imageUrl = questions[pageNumber - 1].filePath;
+    if (!imageUrl) {
+      return;
+    }
+
     const data = await StorageService.getFile(imageUrl as string);
     const img = new Image();
     img.src = data.publicUrl as string;
@@ -414,7 +418,7 @@ const Question = React.memo(function Question({
       <div className='drag-handle mr-2 absolute top-2 left-2 p-1 rounded-full'>
         Sual: {index + 1}
       </div>
-      {loading ? (
+      {loading || imageUrl === null ? (
         <img
           src={placeholderImage}
           alt='placeholder'
