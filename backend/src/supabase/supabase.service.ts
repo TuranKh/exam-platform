@@ -10,6 +10,5 @@ export class SupabaseService implements OnApplicationBootstrap {
 
   init() {
     createClient(config.supabase.url, config.supabase.clientKey);
-    console.log("executed");
   }
 }
