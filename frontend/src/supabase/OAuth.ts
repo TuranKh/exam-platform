@@ -1,5 +1,5 @@
 import { supabase } from "./init";
-import { config } from "../../env";
+import config from "../../../env.ts";
 
 export default async function OAuthSignIn() {
   const { data, error } = await supabase.auth.signInWithOAuth({

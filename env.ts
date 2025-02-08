@@ -1,4 +1,4 @@
-export const config = {
+const config = {
   clientUrl: "http://localhost:5173",
   supabase: {
     url: "https://kfmuntfabdrcfxcrqdyz.supabase.co",
@@ -9,3 +9,5 @@ export const config = {
     url: "http://localhost:3000",
   },
 };
+
+export default config;
