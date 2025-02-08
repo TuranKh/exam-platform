@@ -1,14 +1,19 @@
 import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
 import config from "@shared/env";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 @Injectable()
 export class SupabaseService implements OnApplicationBootstrap {
+  supabase: null | SupabaseClient = null;
+
   onApplicationBootstrap() {
     this.init();
   }
 
   init() {
-    createClient(config.supabase.url, config.supabase.clientKey);
+    this.supabase = createClient(
+      config.supabase.url,
+      config.supabase.clientKey,
+    );
   }
 }
