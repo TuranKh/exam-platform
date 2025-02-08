@@ -18,9 +18,7 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@shared/*": [
-        "../*"
-      ]
+      "@shared/*": ["../*"]
     }
   }
 }
