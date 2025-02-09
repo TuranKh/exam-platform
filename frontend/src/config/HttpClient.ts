@@ -1,5 +1,5 @@
 import axios from "axios";
-import config from "../../../env.ts";
+import config from "@shared/env.ts";
 import toast from "react-hot-toast";
 
 export const httpClient = axios.create({
