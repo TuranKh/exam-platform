@@ -5,6 +5,7 @@ import { UserExamFilters } from "@/pages/permissions";
 import { supabase } from "@/supabase/init";
 import { ExamDetails } from "./ExamService";
 import { UserDetails } from "./UserService";
+import { httpClient } from "@/config/HttpClient";
 
 export default class UserExamsService {
   static async startExam(rowId: number) {
@@ -101,11 +102,10 @@ export default class UserExamsService {
     rowId: number,
     answers: Record<string, string | null>,
   ) {
-    const { error } = await supabase
-      .from("user-exams")
-      .update({ submittedAnswers: answers, isFinished: true })
-      .eq("id", rowId)
-      .select("*");
+    const error = await httpClient.post("submit-answers", {
+      rowId,
+      answers,
+    });
 
     return error;
   }

@@ -1,14 +1,17 @@
 import axios from "axios";
+import config from "@shared/env.ts";
+import toast from "react-hot-toast";
 
-export const httpClient = axios.create();
+export const httpClient = axios.create({
+  baseURL: config.backend.url,
+});
 
-httpClient.interceptors.request.use(
-  function (config) {
-    // Do something before request is sent
-    return config;
+httpClient.interceptors.response.use(
+  function (response) {
+    return response;
   },
   function (error) {
-    // Do something with request error
+    toast.error(error?.response?.data?.message || "Xəta baş verdi");
     return Promise.reject(error);
   },
 );
