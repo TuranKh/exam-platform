@@ -7,16 +7,22 @@ export class UserExamsService {
   constructor(private supabaseService: SupabaseService) {}
 
   async submitExams(examDetails: SubmitExamDetails) {
-    const alreadyExists = await this.supabaseService
+    const {data, error} = await this.supabaseService
       .supabase!.from("user-exams")
       .select("submittedAnswers")
       .eq("id", examDetails.rowId)
       .not("submittedAnswers", "is", null);
 
-    if (alreadyExists) {
+    if (data?.length) {
       return {
         message: "Qeyd olunan imtahan üçün artıq cavablar göndərilib",
         errorCode: HttpStatus.BAD_REQUEST,
+      };
+    }
+    if (error) {
+      return {
+        message: "İmtahan məlumatları alarkən xəta baş verdi",
+        errorCode: HttpStatus.NOT_FOUND,
       };
     }
 
