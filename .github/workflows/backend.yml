@@ -34,9 +34,8 @@ jobs:
             cd backend && \
             cp /var/env/env.ts ${{ secrets.WORK_DIR }}/shared && \
             npm run build && \
+            pm2 restart "nest" && \
             git reset --hard && \
-            rm -rf ${{ secrets.BACKEND_DEPLOY_DIR }}/* && \
-            mv -f ./dist/* ${{ secrets.BACKEND_DEPLOY_DIR }} && \
             sudo systemctl reload nginx"
 
       - name: Cleanup
