@@ -7,7 +7,7 @@ export class UserExamsService {
   constructor(private supabaseService: SupabaseService) {}
 
   async submitExams(examDetails: SubmitExamDetails) {
-    const {data, error} = await this.supabaseService
+    const { data, error: existingExamError } = await this.supabaseService
       .supabase!.from("user-exams")
       .select("submittedAnswers")
       .eq("id", examDetails.rowId)
@@ -19,7 +19,7 @@ export class UserExamsService {
         errorCode: HttpStatus.BAD_REQUEST,
       };
     }
-    if (error) {
+    if (existingExamError) {
       return {
         message: "İmtahan məlumatları alarkən xəta baş verdi",
         errorCode: HttpStatus.NOT_FOUND,
@@ -32,9 +32,15 @@ export class UserExamsService {
       .eq("id", examDetails.rowId)
       .select("*");
 
+    if (error) {
+      return {
+        message: "Cavabları yadda saxlayarkən, xəta baş verdi!",
+        errorCode: HttpStatus.BAD_REQUEST,
+      };
+    }
     return {
-      message: "Cavabları yadda saxlayarkən, xəta baş verdi!",
-      errorCode: HttpStatus.BAD_REQUEST,
+      message: "Cavablar uğurla yadda saxlanıldı",
+      errorCode: HttpStatus.OK,
     };
   }
 }
