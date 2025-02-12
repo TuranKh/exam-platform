@@ -9,6 +9,6 @@ async function bootstrap() {
     origin: [config.clientUrl],
   });
 
-  await app.listen(process.env.PORT ?? 8080);
+  await app.listen(process.env.PORT ?? 8000);
 }
 bootstrap();
