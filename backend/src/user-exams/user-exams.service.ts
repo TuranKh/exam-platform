@@ -10,6 +10,7 @@ export class UserExamsService {
     const alreadyExists = await this.supabaseService
       .supabase!.from("user-exams")
       .select("submittedAnswers")
+      .eq("id", examDetails.rowId)
       .not("submittedAnswers", "is", null);
 
     if (alreadyExists) {
