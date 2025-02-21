@@ -29,6 +29,7 @@ jobs:
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "\
             cd ${{ secrets.WORK_DIR }} && \
             git checkout staging && \
+            git reset --hard && \
             git pull && \
             npm install && \
             cd frontend && \
