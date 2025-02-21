@@ -97,10 +97,6 @@ function App() {
   });
 
   useEffect(() => {
-    (async () => {
-      const user = await supabase.auth.getUser();
-      console.log(user);
-    })();
     if (!userDetails?.isPending && userDetails?.isAdmin) {
       subscribeToChanges();
     }

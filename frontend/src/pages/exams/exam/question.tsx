@@ -101,7 +101,7 @@ export const Question = React.memo(function SortableItem({
       ref={setNodeRef}
       style={style}
       id={question.id}
-      className='relative border rounded-lg p-4 flex items-center'
+      className='relative border rounded-lg p-4 flex items-center pb-16'
     >
       <div className='drag-handle mr-2 absolute top-2 left-2 p-1 rounded-full'>
         Sual: {index + 1}

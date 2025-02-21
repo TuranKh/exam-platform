@@ -102,12 +102,12 @@ export default class UserExamsService {
     rowId: number,
     answers: Record<string, string | null>,
   ) {
-    const error = await httpClient.post("submit-answers", {
+    const response = await httpClient.post("submit-answers", {
       rowId,
       answers,
     });
 
-    return error;
+    return response.data;
   }
 }
 

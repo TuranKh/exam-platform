@@ -122,7 +122,8 @@ export default function Exam() {
 
   function removePendingQuestion(index: number) {
     setQuestions((prev) => {
-      const editted = [...prev].splice(index, 1);
+      const editted = [...prev];
+      editted.splice(index, 1);
       return editted;
     });
   }
