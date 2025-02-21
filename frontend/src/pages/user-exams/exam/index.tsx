@@ -31,6 +31,7 @@ import { useQuery, useQueryClient } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Exam.scss";
 import placeholderImage from "/assets/placeholder.webp";
+import { Badge } from "@/components/ui/badge";
 
 interface Question {
   id: string;
@@ -54,6 +55,7 @@ export default function Exam() {
     duration: number;
     id: number;
     isFinished: boolean;
+    score: number;
   }>({});
   const [questions, setQuestions] = useState<
     Array<Omit<Question, "correctAnswer"> & { flagged?: boolean }>
@@ -109,6 +111,7 @@ export default function Exam() {
         name: existingExamDetails.name,
         id: existingExamDetails.examId,
         isFinished: existingExamDetails.isFinished,
+        score: existingExamDetails.score,
       });
       setQuestions(() => {
         const existingQuestions = JSON.parse(existingExamDetails.questions);
@@ -148,16 +151,25 @@ export default function Exam() {
   }
 
   async function submitExam() {
-    const error = await UserExamsService.submitAnswers(Number(id), answers);
+    if (examDetails.isFinished) return;
+
+    const { message, correctAnswers, score } =
+      await UserExamsService.submitAnswers(Number(id), answers);
     queryClient.invalidateQueries("all-user-exams");
 
-    if (error) {
-      toast.error("Sualları təsdiq edərkən xəta baş verdi!");
-    } else {
-      await fetchAndSetExams();
-      setExamIsOngoing(false);
-      toast.success("İmtahan uğurla yekunlaşdı");
+    if (message) {
+      toast.success(message);
     }
+
+    setExamDetails((current) => {
+      return {
+        ...current,
+        score,
+        isFinished: true,
+      };
+    });
+    setExamAnswers(correctAnswers);
+    setExamIsOngoing(false);
   }
 
   const fetchAndSetExams = async function () {
@@ -244,7 +256,7 @@ export default function Exam() {
 
   return (
     <>
-      {!examIsOngoing && (
+      {!examIsOngoing && !examDetails.isFinished && (
         <Confetti
           numberOfPieces={1200}
           recycle={false}
@@ -275,6 +287,10 @@ export default function Exam() {
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-lg font-medium mb-2'>
             {examDetails.name}
+            <br />
+            {examDetails.isFinished && (
+              <Badge>Topladığınız bal: {examDetails.score}</Badge>
+            )}
           </CardTitle>
           <BookOpen className='h-4 w-4 text-muted-foreground' />
         </CardHeader>

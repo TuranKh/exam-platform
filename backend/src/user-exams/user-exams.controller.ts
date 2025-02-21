@@ -11,14 +11,13 @@ export class UserExamsController {
     @Res() response: Response,
     @Body() examDetails: SubmitExamDetails,
   ): Promise<unknown> {
-    const error = await this.userExamsService.submitExams(examDetails);
-    return response.status(error.errorCode).send({
-      message: error.message,
-    });
+    const { errorCode, ...rest } =
+      await this.userExamsService.submitExams(examDetails);
+    return response.status(errorCode).send(rest);
   }
 }
 
 export type SubmitExamDetails = {
-  answers: string;
+  answers: Record<string, string>;
   rowId: number;
 };
