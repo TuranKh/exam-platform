@@ -3,7 +3,7 @@ import { SupabaseService } from "src/supabase/supabase.service";
 import { SubmitExamDetails } from "./user-exams.controller";
 
 @Injectable()
-export class UserExamsService {
+export class ExamsService {
   constructor(private supabaseService: SupabaseService) {}
 
   async submitExams(examDetails: SubmitExamDetails) {

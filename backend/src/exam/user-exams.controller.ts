@@ -1,12 +1,12 @@
-import { Body, Controller, HttpCode, Post, Res } from "@nestjs/common";
-import { UserExamsService } from "./user-exams.service";
+import { Body, Controller, Post, Res } from "@nestjs/common";
 import { Response } from "express";
+import { ExamsService } from "./user-exams.service";
 
-@Controller("submit-answers")
-export class UserExamsController {
-  constructor(private readonly userExamsService: UserExamsService) {}
+@Controller("exam")
+export class ExamsController {
+  constructor(private readonly userExamsService: ExamsService) {}
 
-  @Post()
+  @Post("submit")
   async submitExam(
     @Res() response: Response,
     @Body() examDetails: SubmitExamDetails,

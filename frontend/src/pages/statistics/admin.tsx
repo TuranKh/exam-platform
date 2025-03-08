@@ -18,7 +18,7 @@ import { Activity, BookOpen, Clock, Users } from "lucide-react";
 import { useQuery } from "react-query";
 import { UserExamFilters } from "../permissions";
 
-export default function Home() {
+export default function AdminStatistics() {
   const { data: statsData } = useQuery({
     queryKey: ["statistics"],
     queryFn: StatisticsService.getAll,
@@ -240,10 +240,6 @@ export default function Home() {
           </div>
         </TabsContent>
       </Tabs>
-      <div style={{ padding: "2rem" }}>
-        <h1>Dynamic Statistics</h1>
-        <hr style={{ margin: "1rem 0" }} />
-      </div>
     </div>
   );
 }

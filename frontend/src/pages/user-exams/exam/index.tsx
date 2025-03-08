@@ -106,6 +106,7 @@ export default function Exam() {
         }
         return;
       }
+      setAnswers(existingExamDetails.submittedAnswers || {});
       setExamDetails({
         duration: existingExamDetails.duration,
         name: existingExamDetails.name,
@@ -174,18 +175,12 @@ export default function Exam() {
 
   const fetchAndSetExams = async function () {
     const answersResponse = await ExamService.getExamAnswers(examDetails.id);
-    setExamAnswers(JSON.parse(answersResponse.answers));
+    const parsed = JSON.parse(answersResponse.answers);
+    setExamAnswers(parsed);
   };
 
   const resetAnswers = function () {
-    setQuestions((current) => {
-      return current.map((questionDetails) => {
-        return {
-          ...questionDetails,
-          correctAnswer: null,
-        };
-      });
-    });
+    setAnswers({});
   };
 
   const totalPages = useMemo(() => {
@@ -225,6 +220,10 @@ export default function Exam() {
   }, [existingExamDetails]);
 
   const onTimeout = async function () {
+    if (existingExamDetails.isFinished) {
+      return;
+    }
+
     await submitExam();
     toast("İmtahan vaxtınız bitdi", {
       icon: "☢️",

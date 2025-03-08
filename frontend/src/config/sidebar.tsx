@@ -9,18 +9,21 @@ import {
 
 import Exam from "@/pages/exams/exam";
 import Exams from "@/pages/exams";
-import Home from "@/pages/home";
 import Permissions from "@/pages/permissions";
 import Users from "@/pages/users";
 import UserExams from "@/pages/user-exams";
 import Groups from "@/pages/groups";
+import AdminStatistics from "@/pages/statistics/admin";
+import { allowedNodeEnvironmentFlags } from "process";
+import UserStatistics from "@/pages/statistics/user";
 
 export enum UserRole {
   Admin = 1,
   Student,
 }
 export enum SidebarPage {
-  Home,
+  AdminStatistics,
+  UserStatistics,
   Permissions,
   CreateExam,
   Exams,
@@ -30,12 +33,21 @@ export enum SidebarPage {
 }
 
 export const sidebarRoutes = [
+  // {
+  //   id: SidebarPage.AdminStatistics,
+  //   title: "Ana səhifə",
+  //   url: "/home",
+  //   icon: HomeIcon,
+  //   component: <AdminStatistics />,
+  //   allowedRole: UserRole.Admin,
+  // },
   {
-    id: SidebarPage.Home,
+    id: SidebarPage.UserStatistics,
     title: "Ana səhifə",
     url: "/home",
     icon: HomeIcon,
-    component: <Home />,
+    component: <UserStatistics />,
+    allowedRole: UserRole.Student,
   },
   {
     id: SidebarPage.Permissions,
