@@ -1,28 +1,57 @@
+import {
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+} from "chart.js";
+import { useMemo } from "react";
+import { Bar, Line } from "react-chartjs-2";
+import { useQuery } from "react-query";
+
 import { FormFieldType, InputDetails } from "@/components/FormBuilder";
 import Loading from "@/components/Loading";
 import Search from "@/components/Search";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Filter } from "@/hooks/useFilter";
+import useFilter, { Filter } from "@/hooks/useFilter";
 import ExamService from "@/service/ExamService";
 import GroupService from "@/service/GroupService";
 import StatisticsService from "@/service/StatisticsService";
 import UserService from "@/service/UserService";
 import { Activity, BookOpen, Clock, Users } from "lucide-react";
-import { useQuery } from "react-query";
 import { UserExamFilters } from "../permissions";
 
-export default function AdminStatistics() {
-  const { data: statsData } = useQuery({
-    queryKey: ["statistics"],
-    queryFn: StatisticsService.getAll,
+ChartJS.register(
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  Legend,
+  PointElement,
+  LineElement,
+);
+
+export default function UserStatistics() {
+  const { filters, setFilters, resetFilters } = useFilter<UserExamFilters>();
+
+  const {
+    data: statsData,
+    refetch,
+    isLoading,
+  } = useQuery({
+    queryKey: ["statistics", filters],
+    queryFn: () => {
+      return StatisticsService.getAll(filters);
+    },
   });
+
+  console.log(filters);
 
   const { data: allGroups } = useQuery({
     queryFn: GroupService.getAllForSelect,
@@ -39,33 +68,93 @@ export default function AdminStatistics() {
     queryKey: ["exams-select"],
   });
 
-  const onSearch = function (params: Filter<UserExamFilters>) {};
+  const onSearch = function (params: Filter<UserExamFilters>) {
+    setFilters(params);
+    refetch();
+  };
 
-  const onReset = function () {};
+  const onReset = function () {
+    resetFilters();
+    refetch();
+  };
 
-  if (!statsData || statsData.length === 0) {
-    return <Loading />;
-  }
+  const finishedExamCount = useMemo(() => {
+    return statsData?.filter((stats) => stats.isFinished).length;
+  }, [statsData]);
 
-  const statistics = statsData[0];
+  const averagePoint = useMemo(() => {
+    if (!statsData || !finishedExamCount) return 0;
+    const sum = statsData.reduce((prev, curr) => {
+      return prev + (curr.score || 0);
+    }, 0);
+    return sum / finishedExamCount;
+  }, [statsData, finishedExamCount]);
 
-  const {
-    totalExams,
-    activeExams,
-    totalUsers,
-    averageExamDuration,
-    recentActivity,
-    examPopularity,
-  } = statistics;
+  const lineChartData = useMemo(() => {
+    if (!statsData) return {};
+    if (!filters.examId) return {};
 
-  const activityData = recentActivity || [];
+    const labels = statsData.map((item) => item.userName);
+    const scores = statsData.map((item) => item.score || 0);
 
-  const {
-    mostPopularExam,
-    leastPopularExam,
-    mostPopularAttempts,
-    leastPopularAttempts,
-  } = examPopularity || {};
+    return {
+      labels: ["", ...labels],
+      datasets: [
+        {
+          label: "Scores",
+          data: [null, ...scores],
+
+          borderColor: "rgba(75,192,192,1)",
+        },
+      ],
+    };
+  }, [statsData, filters.examId]);
+
+  const lineChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+      title: {
+        display: true,
+      },
+    },
+  };
+
+  const participantsData = useMemo(() => {
+    if (!statsData) return {};
+
+    // Tally participants by examName
+    const examCounts: Record<string, number> = {};
+    statsData.forEach((item) => {
+      const examName = item.examName || "Unknown Exam";
+      examCounts[examName] = (examCounts[examName] || 0) + 1;
+    });
+
+    // Convert object into arrays
+    const labels = Object.keys(examCounts);
+    const data = Object.values(examCounts);
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: "İştirakçıların sayı",
+          data,
+        },
+      ],
+    };
+  }, [statsData]);
+
+  const participantsOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+    },
+  };
 
   return (
     <div className='flex-1 space-y-4 p-8 pt-6'>
@@ -88,157 +177,103 @@ export default function AdminStatistics() {
             },
           }}
         />
-        <TabsContent value='overview' className='space-y-4'>
-          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>
-                  Ümumi İmtahanlar
-                </CardTitle>
-                <BookOpen className='h-4 w-4 text-muted-foreground' />
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>{totalExams}</div>
-                <p className='text-xs text-muted-foreground'>
-                  {activeExams} hazırda aktivdir
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>
-                  Aktiv/Ümumi İmtahanlar
-                </CardTitle>
-                <Activity className='h-4 w-4 text-muted-foreground' />
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>
-                  {totalExams > 0
-                    ? ((activeExams / totalExams) * 100).toFixed(1)
-                    : 0}
-                  %
-                </div>
-                <p className='text-xs text-muted-foreground'>
-                  {activeExams}/{totalExams}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>
-                  Ümumi İstifadəçilər
-                </CardTitle>
-                <Users className='h-4 w-4 text-muted-foreground' />
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>{totalUsers}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>
-                  Orta İmtahan Müddəti
-                </CardTitle>
-                <Clock className='h-4 w-4 text-muted-foreground' />
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>
-                  {averageExamDuration || 0} dəq
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-7'>
-            <Card className='col-span-4'>
-              <CardHeader>
-                <CardTitle>İstifadəçi Qiymət Paylanması</CardTitle>
-              </CardHeader>
-              <CardContent></CardContent>
-            </Card>
-            <Card className='col-span-3'>
-              <CardHeader>
-                <CardTitle>Orta İmtahan Müddəti</CardTitle>
-                <CardDescription>
-                  Hər imtahan üçün orta vaxt dəqiqələrlə
-                </CardDescription>
-              </CardHeader>
-              <CardContent></CardContent>
-            </Card>
-          </div>
-          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-7'>
-            <Card className='col-span-4'>
-              <CardHeader>
-                <CardTitle>Son Fəaliyyət</CardTitle>
-                <CardDescription>
-                  İmtahanlarla bağlı son istifadəçi hərəkətləri
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className='space-y-8'>
-                  {activityData.length > 0 ? (
-                    activityData.map((activity, index) => (
-                      <div key={index} className='flex items-center'>
-                        <div className='space-y-1'>
-                          <p className='text-sm font-medium leading-none'>
-                            {activity.user}
-                          </p>
-                          <p className='text-sm text-muted-foreground'>
-                            {activity.action}
-                          </p>
-                        </div>
-                        <div className='ml-auto font-medium'>
-                          {activity.score !== null
-                            ? `Qiymət: ${activity.score}`
-                            : "Davam edir"}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className='text-sm text-muted-foreground'>
-                      Son fəaliyyət yoxdur.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            <Card className='col-span-3'>
-              <CardHeader>
-                <CardTitle>İmtahan Populyarlığı</CardTitle>
-                <CardDescription>
-                  Ən çox və ən az daxil olunan imtahanlar
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {examPopularity && (
-                  <div className='space-y-8'>
-                    <div>
-                      <div className='text-sm font-medium'>
-                        Ən Çox Daxil Olunan
-                      </div>
-                      <div className='text-2xl font-bold'>
-                        {mostPopularExam}
-                      </div>
-                      <div className='text-sm text-muted-foreground'>
-                        Bu həftə {mostPopularAttempts} cəhd
-                      </div>
-                    </div>
-                    <div>
-                      <div className='text-sm font-medium'>
-                        Ən Az Daxil Olunan
-                      </div>
-                      <div className='text-2xl font-bold'>
-                        {leastPopularExam}
-                      </div>
-                      <div className='text-sm text-muted-foreground'>
-                        Bu həftə {leastPopularAttempts} cəhd
-                      </div>
-                    </div>
+        {isLoading ? (
+          <Loading />
+        ) : (
+          <TabsContent value='overview' className='space-y-4'>
+            {/* Overview Cards */}
+            <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+              <Card>
+                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+                  <CardTitle className='text-sm font-medium'>
+                    Ən yuxarı nəticə
+                  </CardTitle>
+                  <BookOpen className='h-4 w-4 text-muted-foreground' />
+                </CardHeader>
+                <CardContent>
+                  <div className='text-2xl font-bold'>
+                    {statsData?.[0]?.score || 0}
                   </div>
-                )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+                  <CardTitle className='text-sm font-medium'>
+                    İmtahanlar üzrə orta balı
+                  </CardTitle>
+                  <Activity className='h-4 w-4 text-muted-foreground' />
+                </CardHeader>
+                <CardContent>
+                  <div className='text-2xl font-bold'>{averagePoint}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+                  <CardTitle className='text-sm font-medium'>
+                    Ümumi istifadəçilərin sayı
+                  </CardTitle>
+                  <Users className='h-4 w-4 text-muted-foreground' />
+                </CardHeader>
+                <CardContent>
+                  <div className='text-2xl font-bold'>{statsData.length}</div>
+                  <p className='text-xs text-muted-foreground'>
+                    {finishedExamCount} iştirak edib /{" "}
+                    {statsData.length - finishedExamCount} iştirak etməyib
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+                  <CardTitle className='text-sm font-medium'>
+                    Orta İmtahan Müddəti
+                  </CardTitle>
+                  <Clock className='h-4 w-4 text-muted-foreground' />
+                </CardHeader>
+                <CardContent>
+                  <div className='text-2xl font-bold'>{200 || 0} dəq</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {filters.examId ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className='text-sm font-medium'>
+                    İmtahan Skorları (Xətti Qrafik)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Line data={lineChartData} options={lineChartOptions} />
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle className='text-sm font-medium'>
+                    Xətti Qrafik üçün İmtahan Seçin
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className='text-muted-foreground'>
+                    Xahiş edirik, imtahan seçin ki, istifadəçilərin ballarını
+                    xətti qrafikdə göstərə bilək.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle className='text-sm font-medium'>
+                  Hər İmtahana Görə İştirakçıların Sayı
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Bar data={participantsData} options={participantsOptions} />
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
@@ -246,18 +281,18 @@ export default function AdminStatistics() {
 
 const inputs: InputDetails[] = [
   {
-    key: "userId",
-    label: "İstifadəçini seçin",
-    type: FormFieldType.CustomElement,
-  },
-  {
     key: "examId",
     label: "İmtahan adı",
     type: FormFieldType.Select,
   },
   {
     key: "users.groupId",
-    label: "Qrup",
+    label: "Qrup adı",
+    type: FormFieldType.Select,
+  },
+  {
+    key: "userId",
+    label: "İstifadəçi adı",
     type: FormFieldType.Select,
   },
 ];

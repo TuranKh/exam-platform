@@ -33,14 +33,14 @@ export enum SidebarPage {
 }
 
 export const sidebarRoutes = [
-  // {
-  //   id: SidebarPage.AdminStatistics,
-  //   title: "Ana səhifə",
-  //   url: "/home",
-  //   icon: HomeIcon,
-  //   component: <AdminStatistics />,
-  //   allowedRole: UserRole.Admin,
-  // },
+  {
+    id: SidebarPage.AdminStatistics,
+    title: "Ana səhifə",
+    url: "/home",
+    icon: HomeIcon,
+    component: <AdminStatistics />,
+    allowedRole: UserRole.Admin,
+  },
   {
     id: SidebarPage.UserStatistics,
     title: "Ana səhifə",
@@ -63,7 +63,7 @@ export const sidebarRoutes = [
     url: "/create-exam",
     icon: Plus,
     component: <Exam />,
-    allowedRole: UserRole.Admin,
+    allowedRole: UserRole.Student,
   },
   {
     id: SidebarPage.Exams,
