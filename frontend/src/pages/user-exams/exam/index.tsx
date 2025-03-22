@@ -12,7 +12,7 @@ import {
 import usePagination from "@/hooks/usePagination";
 import useWindowSize from "@/hooks/useWindowSize";
 import { selectAnswerOptions } from "@/lib/exam";
-import ExamService from "@/service/ExamService";
+import ExamService, { ExamState } from "@/service/ExamService";
 import StorageService from "@/service/StorageService";
 import UserExamsService from "@/service/UserExamsService";
 import { differenceInSeconds } from "date-fns";
@@ -78,6 +78,12 @@ export default function Exam() {
       setAnswers(JSON.parse(storedAnswers));
     }
   }, []);
+
+  useEffect(() => {
+    if (existingExamDetails?.examState === ExamState.Ended) {
+      setExamIsOngoing(false);
+    }
+  }, [existingExamDetails]);
 
   useEffect(() => {
     if (examDetails.isFinished) {
@@ -281,11 +287,15 @@ export default function Exam() {
             }}
           />
           <div className={`${showTimer ? "block" : "hidden"}`}>
-            <Countdown
-              onTimeout={onTimeout}
-              totalDurationInSeconds={(existingExamDetails?.duration || 0) * 60}
-              durationLeftInSeconds={secondsLeft}
-            />
+            {existingExamDetails.examState !== ExamState.Ended && (
+              <Countdown
+                onTimeout={onTimeout}
+                totalDurationInSeconds={
+                  (existingExamDetails?.duration || 0) * 60
+                }
+                durationLeftInSeconds={secondsLeft}
+              />
+            )}
           </div>
         </div>
       )}
