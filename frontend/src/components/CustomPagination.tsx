@@ -110,7 +110,7 @@ export default function CustomPagination({
             hidden={paginationDetails.page + 1 === totalPages}
             onClick={(e) => {
               e.preventDefault();
-              if (paginationDetails.page < totalPages) {
+              if (paginationDetails.page + 1 < totalPages) {
                 paginationDetails.setPage(paginationDetails.page + 1);
               }
             }}

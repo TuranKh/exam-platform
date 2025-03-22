@@ -171,6 +171,7 @@ export default function Exam() {
     });
     setExamAnswers(correctAnswers);
     setExamIsOngoing(false);
+    queryClient.invalidateQueries("all-user-exams");
   }
 
   const fetchAndSetExams = async function () {
@@ -202,10 +203,16 @@ export default function Exam() {
   const onKeyPress = function (event: React.KeyboardEvent<HTMLInputElement>) {
     switch (event.key) {
       case "ArrowRight":
-        paginationDetails.setPage((current) => current + 1);
+        paginationDetails.setPage((current) =>
+          current === paginationDetails.totalRowsNumber - 1
+            ? current
+            : current + 1,
+        );
         return;
       case "ArrowLeft":
-        paginationDetails.setPage((current) => current - 1);
+        paginationDetails.setPage((current) =>
+          current === 0 ? current : current - 1,
+        );
         return;
     }
   };
@@ -429,7 +436,7 @@ const Question = React.memo(function Question({
   }, [question]);
 
   return (
-    <div className='relative border rounded-lg p-4 flex items-center'>
+    <div className='relative border rounded-lg px-4 py-12 flex items-center'>
       <div className='drag-handle mr-2 absolute top-2 left-2 p-1 rounded-full'>
         Sual: {index + 1}
       </div>

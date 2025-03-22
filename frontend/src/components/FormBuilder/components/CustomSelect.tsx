@@ -41,7 +41,7 @@ export default function CustomSelect({
         <SelectGroup>
           {options.length ? (
             options?.map((option) => (
-              <SelectItem value={String(option.value)}>
+              <SelectItem key={option.value} value={String(option.value)}>
                 {option.label}
               </SelectItem>
             ))

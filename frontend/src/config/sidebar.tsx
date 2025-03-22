@@ -7,23 +7,21 @@ import {
   Users as UsersIcon,
 } from "lucide-react";
 
-import Exam from "@/pages/exams/exam";
 import Exams from "@/pages/exams";
-import Permissions from "@/pages/permissions";
-import Users from "@/pages/users";
-import UserExams from "@/pages/user-exams";
+import Exam from "@/pages/exams/exam";
 import Groups from "@/pages/groups";
-import AdminStatistics from "@/pages/statistics/admin";
-import { allowedNodeEnvironmentFlags } from "process";
-import UserStatistics from "@/pages/statistics/user";
+import Permissions from "@/pages/permissions";
+import UserExams from "@/pages/user-exams";
+import Users from "@/pages/users";
+import Home from "@/pages/home";
 
 export enum UserRole {
   Admin = 1,
   Student,
+  All,
 }
 export enum SidebarPage {
-  AdminStatistics,
-  UserStatistics,
+  Statistics,
   Permissions,
   CreateExam,
   Exams,
@@ -34,20 +32,12 @@ export enum SidebarPage {
 
 export const sidebarRoutes = [
   {
-    id: SidebarPage.AdminStatistics,
+    id: SidebarPage.Statistics,
     title: "Ana səhifə",
     url: "/home",
     icon: HomeIcon,
-    component: <AdminStatistics />,
-    allowedRole: UserRole.Admin,
-  },
-  {
-    id: SidebarPage.UserStatistics,
-    title: "Ana səhifə",
-    url: "/home",
-    icon: HomeIcon,
-    component: <UserStatistics />,
-    allowedRole: UserRole.Student,
+    component: <Home />,
+    allowedRole: UserRole.All,
   },
   {
     id: SidebarPage.Permissions,
@@ -63,7 +53,7 @@ export const sidebarRoutes = [
     url: "/create-exam",
     icon: Plus,
     component: <Exam />,
-    allowedRole: UserRole.Student,
+    allowedRole: UserRole.Admin,
   },
   {
     id: SidebarPage.Exams,

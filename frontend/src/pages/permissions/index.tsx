@@ -255,12 +255,12 @@ const inputs: InputDetails[] = [
   {
     key: "userId",
     label: "İstifadəçini seçin",
-    type: FormFieldType.CustomElement,
+    type: FormFieldType.Autocomplete,
   },
   {
     key: "examId",
     label: "İmtahan adı",
-    type: FormFieldType.Select,
+    type: FormFieldType.Autocomplete,
   },
   {
     key: "users.groupId",

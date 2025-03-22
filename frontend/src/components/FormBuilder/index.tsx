@@ -17,7 +17,7 @@ export enum FormFieldType {
   Checkbox = "checkbox",
   Radio = "radio",
   Slider = "slider",
-  CustomElement = "custom-element",
+  Autocomplete = "autocomplete",
 }
 
 export type OptionsValue = string | number | null;
@@ -81,8 +81,13 @@ export default function FormBuilder({ form }: { form: FormDetails }) {
               formFieldDetails={formFieldDetails}
             />
           );
-        case FormFieldType.CustomElement:
-          return <Autocomplete options={options} formFieldDetails={formFieldDetails} />;
+        case FormFieldType.Autocomplete:
+          return (
+            <Autocomplete
+              options={options}
+              formFieldDetails={formFieldDetails}
+            />
+          );
         case FormFieldType.DatePicker:
           return (
             <DatePicker
