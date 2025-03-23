@@ -46,6 +46,10 @@ export default function AppSidebar() {
         return false;
       }
 
+      if (role === UserRole.All) {
+        return true;
+      }
+
       if (role === UserRole.Admin && userDetails.isAdmin) {
         return true;
       }

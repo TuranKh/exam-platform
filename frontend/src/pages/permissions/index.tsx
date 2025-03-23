@@ -255,12 +255,12 @@ const inputs: InputDetails[] = [
   {
     key: "userId",
     label: "İstifadəçini seçin",
-    type: FormFieldType.CustomElement,
+    type: FormFieldType.Autocomplete,
   },
   {
     key: "examId",
     label: "İmtahan adı",
-    type: FormFieldType.Select,
+    type: FormFieldType.Autocomplete,
   },
   {
     key: "users.groupId",
@@ -320,6 +320,6 @@ const staticColumns: Column<UserExamDetails>[] = [
     accessor: "result",
     align: "center",
     Render: (data: UserExamDetails) =>
-      data.isFinished && data.score !== null ? `${data.score}/50` : "-",
+      data.isFinished && data.score !== null ? `${data.score} / 80` : "-",
   },
 ];

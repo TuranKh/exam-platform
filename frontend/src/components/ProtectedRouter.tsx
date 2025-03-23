@@ -24,25 +24,34 @@ export default function ProtectedRouter({
 
   const isAuthorized = userDetails?.email;
   const isPending = userDetails?.isPending;
-
   if (isPending) {
     return <Navigate to='/pending' />;
   }
 
-  if (isAuthorized) {
-    if (!userRole) {
-      return children;
-    }
-
-    if (userRole === UserRole.Admin && userDetails.isAdmin) {
-      return children;
-    }
-
-    if (userRole === UserRole.Student && !userDetails.isAdmin) {
-      return children;
-    }
-
+  if (!isAuthorized) {
     return <Navigate to='/pending' />;
+  }
+
+  if (!userRole) {
+    return children;
+  }
+
+  if (userRole === UserRole.All) {
+    return children;
+  }
+
+  if (userRole === UserRole.Admin) {
+    if (userDetails.isAdmin) {
+      return children;
+    }
+    return <Navigate to='/not-found' />;
+  }
+
+  if (userRole === UserRole.Student) {
+    if (userDetails.isAdmin) {
+      return <Navigate to='/not-found' />;
+    }
+    return children;
   }
 
   return <Navigate to='/pending' />;

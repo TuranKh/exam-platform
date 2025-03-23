@@ -12,7 +12,7 @@ import {
 import usePagination from "@/hooks/usePagination";
 import useWindowSize from "@/hooks/useWindowSize";
 import { selectAnswerOptions } from "@/lib/exam";
-import ExamService from "@/service/ExamService";
+import ExamService, { ExamState } from "@/service/ExamService";
 import StorageService from "@/service/StorageService";
 import UserExamsService from "@/service/UserExamsService";
 import { differenceInSeconds } from "date-fns";
@@ -80,6 +80,12 @@ export default function Exam() {
   }, []);
 
   useEffect(() => {
+    if (existingExamDetails?.examState === ExamState.Ended) {
+      setExamIsOngoing(false);
+    }
+  }, [existingExamDetails]);
+
+  useEffect(() => {
     if (examDetails.isFinished) {
       fetchAndSetExams();
       setExamIsOngoing(false);
@@ -106,6 +112,7 @@ export default function Exam() {
         }
         return;
       }
+      setAnswers(existingExamDetails.submittedAnswers || {});
       setExamDetails({
         duration: existingExamDetails.duration,
         name: existingExamDetails.name,
@@ -170,22 +177,17 @@ export default function Exam() {
     });
     setExamAnswers(correctAnswers);
     setExamIsOngoing(false);
+    queryClient.invalidateQueries("all-user-exams");
   }
 
   const fetchAndSetExams = async function () {
     const answersResponse = await ExamService.getExamAnswers(examDetails.id);
-    setExamAnswers(JSON.parse(answersResponse.answers));
+    const parsed = JSON.parse(answersResponse.answers);
+    setExamAnswers(parsed);
   };
 
   const resetAnswers = function () {
-    setQuestions((current) => {
-      return current.map((questionDetails) => {
-        return {
-          ...questionDetails,
-          correctAnswer: null,
-        };
-      });
-    });
+    setAnswers({});
   };
 
   const totalPages = useMemo(() => {
@@ -207,10 +209,16 @@ export default function Exam() {
   const onKeyPress = function (event: React.KeyboardEvent<HTMLInputElement>) {
     switch (event.key) {
       case "ArrowRight":
-        paginationDetails.setPage((current) => current + 1);
+        paginationDetails.setPage((current) =>
+          current === paginationDetails.totalRowsNumber - 1
+            ? current
+            : current + 1,
+        );
         return;
       case "ArrowLeft":
-        paginationDetails.setPage((current) => current - 1);
+        paginationDetails.setPage((current) =>
+          current === 0 ? current : current - 1,
+        );
         return;
     }
   };
@@ -225,6 +233,10 @@ export default function Exam() {
   }, [existingExamDetails]);
 
   const onTimeout = async function () {
+    if (existingExamDetails.isFinished) {
+      return;
+    }
+
     await submitExam();
     toast("İmtahan vaxtınız bitdi", {
       icon: "☢️",
@@ -275,11 +287,15 @@ export default function Exam() {
             }}
           />
           <div className={`${showTimer ? "block" : "hidden"}`}>
-            <Countdown
-              onTimeout={onTimeout}
-              totalDurationInSeconds={(existingExamDetails?.duration || 0) * 60}
-              durationLeftInSeconds={secondsLeft}
-            />
+            {existingExamDetails.examState !== ExamState.Ended && (
+              <Countdown
+                onTimeout={onTimeout}
+                totalDurationInSeconds={
+                  (existingExamDetails?.duration || 0) * 60
+                }
+                durationLeftInSeconds={secondsLeft}
+              />
+            )}
           </div>
         </div>
       )}
@@ -430,7 +446,7 @@ const Question = React.memo(function Question({
   }, [question]);
 
   return (
-    <div className='relative border rounded-lg p-4 flex items-center'>
+    <div className='relative border rounded-lg px-4 py-12 flex items-center'>
       <div className='drag-handle mr-2 absolute top-2 left-2 p-1 rounded-full'>
         Sual: {index + 1}
       </div>

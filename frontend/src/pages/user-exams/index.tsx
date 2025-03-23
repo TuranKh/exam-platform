@@ -106,7 +106,7 @@ const inputs: InputDetails[] = [
   {
     key: "examId",
     label: "İmtahan adı",
-    type: FormFieldType.Select,
+    type: FormFieldType.Autocomplete,
   },
   {
     key: "createdAt",

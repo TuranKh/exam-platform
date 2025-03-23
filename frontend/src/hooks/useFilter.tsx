@@ -3,8 +3,8 @@ import { useEffect, useRef } from "react";
 
 export type Filter<T> = Record<keyof T, AvailableValues>;
 
-export default function useFilter<T>() {
-  const filter = useRef<Filter<T>>({} as Filter<T>);
+export default function useFilter<T>(initialState) {
+  const filter = useRef<Filter<T>>(initialState || ({} as Filter<T>));
 
   useEffect(() => {
     return () => {

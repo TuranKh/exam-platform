@@ -94,12 +94,12 @@ export default function GroupModal({
 
     if (!error) {
       invalidateRelatedQueries();
-      return;
+      toast.success(`İstifadəçi uğurla qrupa əlavə edildi`);
     }
-    toast.success(`İstifadəçi uğurla qrupa əlavə edildi`);
   };
 
   const invalidateRelatedQueries = function () {
+    queryClient.invalidateQueries({ queryKey: ["all-select-groups"] });
     queryClient.invalidateQueries({
       queryKey: ["all-groups"],
     });
@@ -132,6 +132,7 @@ export default function GroupModal({
     await UserService.changeUserGroup(null, userId);
     invalidateRelatedQueries();
   };
+
   const search = function (e: ChangeEvent<HTMLInputElement>) {
     if (timerId) clearTimeout(timerId);
     const input = e.target.value.trim();

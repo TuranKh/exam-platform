@@ -102,7 +102,7 @@ export default class UserExamsService {
     rowId: number,
     answers: Record<string, string | null>,
   ) {
-    const response = await httpClient.post("submit-answers", {
+    const response = await httpClient.post("exam/submit", {
       rowId,
       answers,
     });

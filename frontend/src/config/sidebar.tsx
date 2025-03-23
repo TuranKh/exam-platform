@@ -7,20 +7,21 @@ import {
   Users as UsersIcon,
 } from "lucide-react";
 
-import Exam from "@/pages/exams/exam";
 import Exams from "@/pages/exams";
-import Home from "@/pages/home";
-import Permissions from "@/pages/permissions";
-import Users from "@/pages/users";
-import UserExams from "@/pages/user-exams";
+import Exam from "@/pages/exams/exam";
 import Groups from "@/pages/groups";
+import Permissions from "@/pages/permissions";
+import UserExams from "@/pages/user-exams";
+import Users from "@/pages/users";
+import Home from "@/pages/home";
 
 export enum UserRole {
   Admin = 1,
   Student,
+  All,
 }
 export enum SidebarPage {
-  Home,
+  Statistics,
   Permissions,
   CreateExam,
   Exams,
@@ -31,11 +32,12 @@ export enum SidebarPage {
 
 export const sidebarRoutes = [
   {
-    id: SidebarPage.Home,
+    id: SidebarPage.Statistics,
     title: "Ana səhifə",
     url: "/home",
     icon: HomeIcon,
     component: <Home />,
+    allowedRole: UserRole.All,
   },
   {
     id: SidebarPage.Permissions,
