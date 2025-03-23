@@ -320,6 +320,6 @@ const staticColumns: Column<UserExamDetails>[] = [
     accessor: "result",
     align: "center",
     Render: (data: UserExamDetails) =>
-      data.isFinished && data.score !== null ? `${data.score}%` : "-",
+      data.isFinished && data.score !== null ? `${data.score} / 80` : "-",
   },
 ];
