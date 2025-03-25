@@ -85,7 +85,7 @@ export default function UserExams() {
         formDetails={{
           inputs,
           options: {
-            status: options.status,
+            examState: options.examState,
             examId: examOptions || [],
           },
         }}
@@ -113,7 +113,7 @@ const inputs: InputDetails[] = [
     type: FormFieldType.DatePicker,
   },
   {
-    key: "status",
+    key: "examState",
     label: "Status",
     type: FormFieldType.Select,
   },
@@ -126,7 +126,7 @@ const ExamStateMapper = {
 };
 
 const options = {
-  status: [
+  examState: [
     {
       label: ExamStateMapper[ExamState.Ongoing],
       value: ExamState.Ongoing,
