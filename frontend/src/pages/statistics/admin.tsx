@@ -121,16 +121,17 @@ export default function AdminStatistics() {
 
   const averagePoint = useMemo(() => {
     if (!statsData || !finishedExamCount) return 0;
+
     const sum = statsData.reduce((prev, curr) => {
       return prev + (curr.score || 0);
     }, 0);
-    return sum / finishedExamCount;
+    return (sum / statsData.length).toFixed(2);
   }, [statsData, finishedExamCount]);
 
   const lineChartData = useMemo(() => {
     if (!statsData) return {};
     if (!filters.examId) return {};
-    console.log(statsData);
+
     const labels = statsData?.map((item) => item.userName);
     const scores = statsData?.map((item) => item.score || 0);
 
@@ -191,8 +192,7 @@ export default function AdminStatistics() {
         <Loading />
       ) : (
         <>
-          {/* Overview Cards */}
-          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
             <Card>
               <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                 <CardTitle className='text-sm font-medium'>
@@ -232,7 +232,7 @@ export default function AdminStatistics() {
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            {/* <Card>
               <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                 <CardTitle className='text-sm font-medium'>
                   Orta İmtahan Müddəti
@@ -242,7 +242,7 @@ export default function AdminStatistics() {
               <CardContent>
                 <div className='text-2xl font-bold'>{200 || 0} dəq</div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           {filters.examId ? (

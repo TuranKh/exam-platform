@@ -1,6 +1,8 @@
 import { Countdown } from "@/components/Countdown";
 import CustomSelect from "@/components/FormBuilder/components/CustomSelect";
 import IconButton from "@/components/IconButton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -21,6 +23,7 @@ import {
   CircleChevronRight,
   Eraser,
   Flag,
+  Info,
   Timer,
   X,
 } from "lucide-react";
@@ -31,13 +34,13 @@ import { useQuery, useQueryClient } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Exam.scss";
 import placeholderImage from "/assets/placeholder.webp";
-import { Badge } from "@/components/ui/badge";
 
 interface Question {
   id: string;
   file?: File;
   correctAnswer: string | null;
   filePath?: string;
+  description?: string;
 }
 
 type Answer = Record<string, string | null>;
@@ -124,10 +127,16 @@ export default function Exam() {
         const existingQuestions = JSON.parse(existingExamDetails.questions);
         paginationDetails.setTotalRowsNumber(existingQuestions.length);
         return existingQuestions.map(
-          (question: { id: string; answerId: number; filePath: string }) => {
+          (question: {
+            id: string;
+            answerId: number;
+            filePath: string;
+            description?: string;
+          }) => {
             return {
               id: question.id,
               filePath: question.filePath,
+              description: question.description,
             };
           },
         );
@@ -340,6 +349,19 @@ export default function Exam() {
                         )}
                       </div>
                     </div>
+                  )}
+                  {!examIsOngoing && activeQuestion.description && (
+                    <Alert variant='default'>
+                      <Info className='h-4 w-4' />
+                      <AlertTitle>Sualın izahı</AlertTitle>
+                      <AlertDescription>
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: activeQuestion.description,
+                          }}
+                        ></div>
+                      </AlertDescription>
+                    </Alert>
                   )}
                 </div>
                 <Pagination>

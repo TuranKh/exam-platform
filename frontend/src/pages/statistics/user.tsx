@@ -21,7 +21,7 @@ import useFilter, { Filter } from "@/hooks/useFilter";
 import ExamService from "@/service/ExamService";
 import GroupService from "@/service/GroupService";
 import StatisticsService from "@/service/StatisticsService";
-import { Activity, BookOpen, Clock, Users } from "lucide-react";
+import { Activity, BookOpen } from "lucide-react";
 import { UserExamFilters } from "../permissions";
 import { useUserStore } from "@/store/UserStore";
 
@@ -61,9 +61,7 @@ const lineChartOptions = {
 export default function UserStatistics() {
   const { userDetails } = useUserStore();
 
-  const { filters, setFilters, resetFilters } = useFilter<UserExamFilters>({
-    userId: userDetails.id,
-  });
+  const { filters, setFilters, resetFilters } = useFilter<UserExamFilters>();
 
   const {
     data: statsData,
@@ -72,7 +70,10 @@ export default function UserStatistics() {
   } = useQuery({
     queryKey: ["statistics", filters],
     queryFn: () => {
-      return StatisticsService.getAll(filters);
+      return StatisticsService.getAll({
+        ...filters,
+        userId: userDetails.id,
+      });
     },
   });
 
@@ -110,7 +111,6 @@ export default function UserStatistics() {
 
   const maxScore = useMemo(() => {
     let maxScore = 0;
-
     for (const scoreDetails of statsData || []) {
       if (scoreDetails.score > maxScore) {
         maxScore = scoreDetails.score;
@@ -121,29 +121,28 @@ export default function UserStatistics() {
 
   const lineChartData = useMemo(() => {
     if (!statsData) return {};
-    if (!filters.examId) return {};
 
-    const labels = statsData?.map((item) => item.userName);
-    const scores = statsData?.map((item) => item.score || 0);
+    const labels = statsData.map((item) => item.examName);
+    const scores = statsData.map((item) => item.score || 0);
 
     return {
-      labels: ["", ...labels],
+      labels,
       datasets: [
         {
           label: "Scores",
-          data: [null, ...scores],
-
+          data: scores,
           borderColor: "rgba(75,192,192,1)",
         },
       ],
     };
-  }, [statsData, filters.examId]);
+  }, [statsData]);
 
   return (
     <div className='flex-1 space-y-4 p-8 pt-6'>
       <div className='flex items-center justify-between space-y-2'>
         <h2 className='text-3xl font-bold tracking-tight'>Ana səhifə</h2>
       </div>
+
       <Search<UserExamFilters>
         onSearch={onSearch}
         onReset={onReset}
@@ -154,6 +153,7 @@ export default function UserStatistics() {
           },
         }}
       />
+
       {isLoading ? (
         <Loading />
       ) : (
@@ -173,7 +173,7 @@ export default function UserStatistics() {
             <Card>
               <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                 <CardTitle className='text-sm font-medium'>
-                  İmtahanlar üzrə orta balı
+                  İmtahanlar üzrə orta bal
                 </CardTitle>
                 <Activity className='h-4 w-4 text-muted-foreground' />
               </CardHeader>
@@ -183,32 +183,16 @@ export default function UserStatistics() {
             </Card>
           </div>
 
-          {filters.examId ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className='text-sm font-medium'>
-                  İmtahan Skorları (Xətti Qrafik)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Line data={lineChartData} options={lineChartOptions} />
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle className='text-sm font-medium'>
-                  Xətti Qrafik üçün İmtahan Seçin
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className='text-muted-foreground'>
-                  Xahiş edirik, imtahan seçin ki, istifadəçilərin ballarını
-                  xətti qrafikdə göstərə bilək.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle className='text-sm font-medium'>
+                İmtahan nəticələri
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Line data={lineChartData} options={lineChartOptions} />
+            </CardContent>
+          </Card>
         </>
       )}
     </div>
