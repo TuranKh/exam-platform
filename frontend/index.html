@@ -1,13 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Examify</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Examify</title>
+  <script>
+    console.log('works 3');
+    var OneDomeWidgetConfig = {
+      client_id: "d7163ffb-e4f9-454d-bffa-bba33f8f2d8e",
+      color: "#ffc300",
+      textColor: "#212121"
+    }
+  </script>
+  <script type="text/javascript" src="https://cdn.onedome.com/widgets/onedome-external.min.js" charset="UTF-8"></script>
+</head>
+
+<body>
+  <button onclick='return oneDomePopup("instantValuation")'>
+        Instant Valuation
+    </button>
+    <button onclick='return oneDomePopup("bookValuation")'>
+        Book valuation
+    </button>
+    <button onclick='return oneDomePopup("bookViewing")'>
+        Book viewing
+    </button>
+    <button onclick='return oneDomePopup("message")'>
+        Message
+    </button>
+    <button onclick='return oneDomePopup("makeOffer")'>
+        Make offer
+    </button>
+    <button onclick='return oneDomePopup("makeOfferRent")'>
+        Make offer for rent
+    </button>
+  
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
